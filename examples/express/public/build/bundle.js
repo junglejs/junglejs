@@ -335,7 +335,7 @@ var app = (function () {
     			t6 = text(" to learn how to build Svelte apps.");
     			t7 = space();
     			h2 = element("h2");
-    			h2.textContent = "Continents:";
+    			h2.textContent = "Example response:";
     			t9 = space();
     			t10 = text(t10_value);
     			attr_dev(h1, "class", "svelte-1tky8bj");

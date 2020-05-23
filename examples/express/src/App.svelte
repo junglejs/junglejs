@@ -1,7 +1,7 @@
 <script>
 	export let name;
 
-	const queryResponse = {continents: ["No data returned"]};
+	const queryResponse = {data: ["No data returned"]};
 
 	function componentQuery() {
 		return `
@@ -20,7 +20,7 @@
 <main>
 	<h1>Hi {name}!</h1>
 	<p>Visit the <a href="https://svelte.dev/tutorial">Svelte tutorial</a> to learn how to build Svelte apps.</p>
-	<h2>Continents:</h2>
+	<h2>Example response:</h2>
 	
 	{JSON.stringify(queryResponse)}
 </main>
