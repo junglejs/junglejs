@@ -1,0 +1,41 @@
+{
+  "name": "junglejs",
+  "version": "0.0.1",
+  "description": "The Jamstack static site framework for Svelte",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ConProgramming/junglejs.git"
+  },
+  "keywords": [
+    "svelte",
+    "junglejs",
+    "jungle",
+    "static site generator",
+    "jamstack",
+    "website",
+    "blog"
+  ],
+  "author": "Conner Aldrich",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ConProgramming/junglejs/issues"
+  },
+  "homepage": "https://github.com/ConProgramming/junglejs#readme",
+  "dependencies": {
+    "acorn": "^7.1.1",
+    "acorn-walk": "^7.1.1",
+    "apollo-boost": "^0.4.9",
+    "express": "^4.17.1",
+    "express-graphql": "^0.9.0",
+    "graphql-playground-middleware-express": "^1.7.14",
+    "graphql-tag": "^2.10.3",
+    "node-fetch": "^2.6.0",
+    "graphql": "^15.0.0",
+    "graphql-compose": "^7.16.1",
+    "lodash.find": "^4.6.0"
+  }
+}
