@@ -61,15 +61,6 @@ module.exports.preprocessQuery = (port = 4000) => {
 
 			const data = JSON.stringify(await client.query({query: gql`${query}`}));
 
-			//Actually get from local Graphql here
-			/*const res = await fetch("https://countries.trevorblades.com/", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ query })
-			});
-
-			const data = JSON.stringify((await res.json()).data); */
-
 			const finalCode = content.slice(0, varStart)+variableName+" = "+data+content.slice(varEnd, content.length);
 	  
 			return { code: finalCode };

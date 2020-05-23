@@ -1,6 +1,4 @@
 <script>
-	export let name;
-
 	const queryResponse = {data: ["No data returned"]};
 
 	function componentQuery() {
@@ -18,7 +16,7 @@
 </script>
 
 <main>
-	<h1>Hi {name}!</h1>
+	<h1>Hi world!</h1>
 	<p>Visit the <a href="https://svelte.dev/tutorial">Svelte tutorial</a> to learn how to build Svelte apps.</p>
 	<h2>Example response:</h2>
 	

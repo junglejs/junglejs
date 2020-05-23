@@ -268,13 +268,6 @@ var app = (function () {
         else
             dispatch_dev("SvelteDOMSetAttribute", { node, attribute, value });
     }
-    function set_data_dev(text, data) {
-        data = '' + data;
-        if (text.data === data)
-            return;
-        dispatch_dev("SvelteDOMSetData", { node: text, data });
-        text.data = data;
-    }
     function validate_slots(name, slot, keys) {
         for (const slot_key of Object.keys(slot)) {
             if (!~keys.indexOf(slot_key)) {
@@ -306,46 +299,41 @@ var app = (function () {
     function create_fragment(ctx) {
     	let main;
     	let h1;
-    	let t0;
     	let t1;
-    	let t2;
-    	let t3;
     	let p;
-    	let t4;
+    	let t2;
     	let a;
-    	let t6;
-    	let t7;
+    	let t4;
+    	let t5;
     	let h2;
-    	let t9;
-    	let t10_value = JSON.stringify(/*queryResponse*/ ctx[1]) + "";
-    	let t10;
+    	let t7;
+    	let t8_value = JSON.stringify(/*queryResponse*/ ctx[0]) + "";
+    	let t8;
 
     	const block = {
     		c: function create() {
     			main = element("main");
     			h1 = element("h1");
-    			t0 = text("Hi ");
-    			t1 = text(/*name*/ ctx[0]);
-    			t2 = text("!");
-    			t3 = space();
+    			h1.textContent = "Hi world!";
+    			t1 = space();
     			p = element("p");
-    			t4 = text("Visit the ");
+    			t2 = text("Visit the ");
     			a = element("a");
     			a.textContent = "Svelte tutorial";
-    			t6 = text(" to learn how to build Svelte apps.");
-    			t7 = space();
+    			t4 = text(" to learn how to build Svelte apps.");
+    			t5 = space();
     			h2 = element("h2");
     			h2.textContent = "Example response:";
-    			t9 = space();
-    			t10 = text(t10_value);
+    			t7 = space();
+    			t8 = text(t8_value);
     			attr_dev(h1, "class", "svelte-1tky8bj");
-    			add_location(h1, file, 20, 1, 689);
+    			add_location(h1, file, 18, 1, 670);
     			attr_dev(a, "href", "https://svelte.dev/tutorial");
-    			add_location(a, file, 21, 14, 723);
-    			add_location(p, file, 21, 1, 710);
-    			add_location(h2, file, 22, 1, 821);
+    			add_location(a, file, 19, 14, 703);
+    			add_location(p, file, 19, 1, 690);
+    			add_location(h2, file, 20, 1, 801);
     			attr_dev(main, "class", "svelte-1tky8bj");
-    			add_location(main, file, 19, 0, 681);
+    			add_location(main, file, 17, 0, 662);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -353,22 +341,17 @@ var app = (function () {
     		m: function mount(target, anchor) {
     			insert_dev(target, main, anchor);
     			append_dev(main, h1);
-    			append_dev(h1, t0);
-    			append_dev(h1, t1);
-    			append_dev(h1, t2);
-    			append_dev(main, t3);
+    			append_dev(main, t1);
     			append_dev(main, p);
-    			append_dev(p, t4);
+    			append_dev(p, t2);
     			append_dev(p, a);
-    			append_dev(p, t6);
-    			append_dev(main, t7);
+    			append_dev(p, t4);
+    			append_dev(main, t5);
     			append_dev(main, h2);
-    			append_dev(main, t9);
-    			append_dev(main, t10);
+    			append_dev(main, t7);
+    			append_dev(main, t8);
     		},
-    		p: function update(ctx, [dirty]) {
-    			if (dirty & /*name*/ 1) set_data_dev(t1, /*name*/ ctx[0]);
-    		},
+    		p: noop,
     		i: noop,
     		o: noop,
     		d: function destroy(detaching) {
@@ -401,8 +384,6 @@ var app = (function () {
     }
 
     function instance($$self, $$props, $$invalidate) {
-    	let { name } = $$props;
-
     	const queryResponse = {
     		"data": {
     			"posts": [
@@ -445,7 +426,7 @@ var app = (function () {
     		"stale": false
     	};
 
-    	const writable_props = ["name"];
+    	const writable_props = [];
 
     	Object.keys($$props).forEach(key => {
     		if (!~writable_props.indexOf(key) && key.slice(0, 2) !== "$$") console.warn(`<App> was created with unknown prop '${key}'`);
@@ -453,28 +434,14 @@ var app = (function () {
 
     	let { $$slots = {}, $$scope } = $$props;
     	validate_slots("App", $$slots, []);
-
-    	$$self.$set = $$props => {
-    		if ("name" in $$props) $$invalidate(0, name = $$props.name);
-    	};
-
-    	$$self.$capture_state = () => ({ name, queryResponse, componentQuery });
-
-    	$$self.$inject_state = $$props => {
-    		if ("name" in $$props) $$invalidate(0, name = $$props.name);
-    	};
-
-    	if ($$props && "$$inject" in $$props) {
-    		$$self.$inject_state($$props.$$inject);
-    	}
-
-    	return [name, queryResponse];
+    	$$self.$capture_state = () => ({ queryResponse, componentQuery });
+    	return [queryResponse];
     }
 
     class App extends SvelteComponentDev {
     	constructor(options) {
     		super(options);
-    		init(this, options, instance, create_fragment, safe_not_equal, { name: 0 });
+    		init(this, options, instance, create_fragment, safe_not_equal, {});
 
     		dispatch_dev("SvelteRegisterComponent", {
     			component: this,
@@ -482,29 +449,11 @@ var app = (function () {
     			options,
     			id: create_fragment.name
     		});
-
-    		const { ctx } = this.$$;
-    		const props = options.props || {};
-
-    		if (/*name*/ ctx[0] === undefined && !("name" in props)) {
-    			console.warn("<App> was created without expected prop 'name'");
-    		}
-    	}
-
-    	get name() {
-    		throw new Error("<App>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-    	}
-
-    	set name(value) {
-    		throw new Error("<App>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
     	}
     }
 
     const app = new App({
     	target: document.body,
-    	props: {
-    		name: 'world'
-    	}
     });
 
     return app;
