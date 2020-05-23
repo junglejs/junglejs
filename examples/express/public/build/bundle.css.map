@@ -1,0 +1,12 @@
+{
+  "version": 3,
+  "file": "bundle.css",
+  "sources": [
+    "../../App.svelte"
+  ],
+  "sourcesContent": [
+    "<script>\n\texport let name;\n\n\tconst queryResponse = {\"data\":{\"posts\":[{\"title\":\"Introduction to GraphQL\",\"author\":{\"firstName\":\"Tom\",\"__typename\":\"Author\"},\"__typename\":\"Post\"},{\"title\":\"Welcome to Apollo\",\"author\":{\"firstName\":\"Sashko\",\"__typename\":\"Author\"},\"__typename\":\"Post\"},{\"title\":\"Advanced GraphQL\",\"author\":{\"firstName\":\"Sashko\",\"__typename\":\"Author\"},\"__typename\":\"Post\"},{\"title\":\"Launchpad is Cool\",\"author\":{\"firstName\":\"Mikhail\",\"__typename\":\"Author\"},\"__typename\":\"Post\"}]},\"loading\":false,\"networkStatus\":7,\"stale\":false};\n\n\tfunction componentQuery() {\n\t\treturn `\n\t\t\tquery {\n\t\t\t\tposts {\n\t\t\t\t\ttitle\n\t\t\t\t\tauthor {\n\t\t\t\t\tfirstName\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t}\n\t\t`;\n\t}\n</script>\n\n<main>\n\t<h1>Hi {name}!</h1>\n\t<p>Visit the <a href=\"https://svelte.dev/tutorial\">Svelte tutorial</a> to learn how to build Svelte apps.</p>\n\t<h2>Continents:</h2>\n\t\n\t{JSON.stringify(queryResponse)}\n</main>\n\n<style>\n\tmain {\n\t\ttext-align: center;\n\t\tpadding: 1em;\n\t\tmax-width: 240px;\n\t\tmargin: 0 auto;\n\t}\n\n\th1 {\n\t\tcolor: #ff3e00;\n\t\ttext-transform: uppercase;\n\t\tfont-size: 4em;\n\t\tfont-weight: 100;\n\t}\n\n\t@media (min-width: 640px) {\n\t\tmain {\n\t\t\tmax-width: none;\n\t\t}\n\t}\n</style>"
+  ],
+  "names": [],
+  "mappings": "AA4BC,IAAI,eAAC,CAAC,AACL,UAAU,CAAE,MAAM,CAClB,OAAO,CAAE,GAAG,CACZ,SAAS,CAAE,KAAK,CAChB,MAAM,CAAE,CAAC,CAAC,IAAI,AACf,CAAC,AAED,EAAE,eAAC,CAAC,AACH,KAAK,CAAE,OAAO,CACd,cAAc,CAAE,SAAS,CACzB,SAAS,CAAE,GAAG,CACd,WAAW,CAAE,GAAG,AACjB,CAAC,AAED,MAAM,AAAC,YAAY,KAAK,CAAC,AAAC,CAAC,AAC1B,IAAI,eAAC,CAAC,AACL,SAAS,CAAE,IAAI,AAChB,CAAC,AACF,CAAC"
+}
