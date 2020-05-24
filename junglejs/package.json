@@ -26,8 +26,6 @@
   },
   "homepage": "https://github.com/ConProgramming/junglejs#readme",
   "dependencies": {
-    "acorn": "^7.1.1",
-    "acorn-walk": "^7.1.1",
     "apollo-boost": "^0.4.9",
     "express": "^4.17.1",
     "express-graphql": "^0.9.0",
