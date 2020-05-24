@@ -15,8 +15,10 @@
     "@junglejs/client": "file:../../junglejs/client",
     "@junglejs/server": "file:../../junglejs/server",
     "@rollup/plugin-json": "^4.0.3",
+    "apollo-boost": "^0.4.9",
     "compression": "^1.7.1",
     "express": "^4.17.1",
+    "graphql": "^15.0.0",
     "sirv": "^0.4.0"
   },
   "devDependencies": {

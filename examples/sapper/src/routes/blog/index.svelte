@@ -1,19 +1,20 @@
 <script context="module">
-	import{ getQuery } from '@junglejs/client';
+	import { getQuery } from '@junglejs/client';
+	import ApolloClient from 'apollo-boost';
 
-	export async function preload({ params, query }) {
-		const QUERY = `
-			query {
-				posts {
-					title
-					author {
-						firstName
-					}
+	const QUERY = `
+		query {
+			posts {
+				title
+				author {
+					firstName
 				}
-			} 
-		`;
-		
-		return { data: await getQuery(QUERY) };
+			}
+		} 
+	`;
+
+	export async function preload({ params }) {
+		return { data: await getQuery(QUERY, ApolloClient) };
 	}
 </script>
 
