@@ -1,5 +1,5 @@
 <script context="module">
-	import { getQuery } from 'junglejs';
+	import{ getQuery } from '@junglejs/client';
 
 	export async function preload({ params, query }) {
 		const QUERY = `
@@ -13,7 +13,7 @@
 			} 
 		`;
 		
-		return { data: {posts: []}/*await getQuery(QUERY*/ };
+		return { data: await getQuery(QUERY) };
 	}
 </script>
 

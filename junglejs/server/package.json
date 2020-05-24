@@ -1,5 +1,5 @@
 {
-  "name": "junglejs",
+  "name": "@junglejs/server",
   "version": "0.0.1",
   "description": "The Jamstack static site framework for Svelte",
   "main": "index.js",
@@ -26,12 +26,9 @@
   },
   "homepage": "https://github.com/ConProgramming/junglejs#readme",
   "dependencies": {
-    "apollo-boost": "^0.4.9",
     "express": "^4.17.1",
     "express-graphql": "^0.9.0",
     "graphql-playground-middleware-express": "^1.7.14",
-    "graphql-tag": "^2.10.3",
-    "node-fetch": "^2.6.0",
     "graphql": "^15.0.0",
     "graphql-compose": "^7.16.1",
     "lodash.find": "^4.6.0"
