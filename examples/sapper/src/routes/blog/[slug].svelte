@@ -1,15 +1,21 @@
 <script context="module">
-	export async function preload({ params, query }) {
-		// the `slug` parameter is available because
-		// this file is called [slug].svelte
-		const res = await this.fetch(`blog/${params.slug}.json`);
-		const data = await res.json();
+	import { getQuery } from '@junglejs/client';
+	import ApolloClient from 'apollo-boost';
 
-		if (res.status === 200) {
-			return { post: data };
-		} else {
-			this.error(res.status, data.message);
-		}
+	export async function preload({ params }) {
+		const QUERY = `
+			query {
+				post(slug: "${params.slug}") {
+					title
+					html
+					author {
+						firstName
+					}
+				}
+			}
+		`;
+
+		return { post: (await getQuery(QUERY, ApolloClient)).post };
 	}
 </script>
 
@@ -58,6 +64,7 @@
 </svelte:head>
 
 <h1>{post.title}</h1>
+<h3>{post.author.firstName}</h3>
 
 <div class='content'>
 	{@html post.html}

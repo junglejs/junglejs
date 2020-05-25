@@ -5,10 +5,10 @@ const authors = [
 ];
 
 const posts = [
-    { id: 1, authorId: 1, title: 'Introduction to GraphQL', votes: 2 },
-    { id: 2, authorId: 2, title: 'Welcome to Apollo', votes: 3 },
-    { id: 3, authorId: 2, title: 'Advanced GraphQL', votes: 1 },
-    { id: 4, authorId: 3, title: 'Launchpad is Cool', votes: 7 },
+    { slug: 'introduction-to-graphql', authorId: 1, title: 'Introduction to GraphQL', html: `<p>Welcome, this is a GraphQL article!</p>` },
+    { slug: 'welcome-to-apollo', authorId: 2, title: 'Welcome to Apollo', html: `<p>Welcome, this is an Apollo article!</p>` },
+{ slug: 'advanced-graphql', authorId: 2, title: 'Advanced GraphQL', html: `<p>Welcome, this is an advanced GrapQL article!</p>` },
+    { slug: 'launchpad-is-cool', authorId: 3, title: 'Launchpad is Cool', html: `<p>Welcome, this is an article about Launchpad!</p>` },
 ];
 
 module.exports.authors = authors;
