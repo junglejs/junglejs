@@ -15,3 +15,6 @@ npm run dev
 ```
 
 The app and the graphql playground will now be running on localhost:3000
+
+## Special thanks
+ - [littlemooon](https://www.npmjs.com/~littlemooon) for letting me takeover the junglejs package on npm
