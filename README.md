@@ -9,9 +9,9 @@ git clone https://github.com/ConProgramming/junglejs.git
 
 cd junglejs/client && npm install && cd ../..
 cd junglejs/server && npm install && cd ../..
-cd examples/sapper && npm install
+cd example && npm install
 
-npm run dev
+npm run start
 ```
 
 The app and the graphql playground will now be running on localhost:3000
