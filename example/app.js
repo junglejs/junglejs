@@ -39,115 +39,13 @@ async function readRoutes() {
       if (!fs.existsSync(`jungle/build/${filename}`)) fs.mkdirSync(`jungle/build/${filename}`);
 
       const mainJs = `import ${fileParts[0]} from '${path.join(__dirname, `src/routes/${file}`)}'; export default new ${fileParts[0]}({target: document.body});`;
+      fs.writeFileSync(`jungle/build/${filename}/main.js`, mainJs);
+  
+      const indexHtml = fs.readFileSync('src/template.html', {encoding:'utf8', flag:'r'});
+      fs.writeFileSync(`jungle/build/${filename}/index.html`, indexHtml);
 
-      fs.writeFileSync(`jungle/build/${filename}/main.js`, mainJs, (err) => {
-        if (err) throw err;
-  
-        // success case, the file was saved
-        console.log('File saved!');
-      });
-  
-      const indexHtml = `<!DOCTYPE html>
-      <html lang="en">
-      <head>
-        <meta charset='utf-8'>
-        <meta name='viewport' content='width=device-width,initial-scale=1'>
-      
-        <title>Svelte app</title>
-      
-        <link rel='icon' type='image/png' href='./favicon.png'>
-        <link rel='stylesheet' href='./global.css'>
-        <link rel='stylesheet' href='./bundle.css'>
-      
-        <script defer src='./bundle.js'></script>
-      </head>
-      
-      <body>
-      </body>
-      </html>
-      `;
-  
-      fs.writeFileSync(`jungle/build/${filename}/index.html`, indexHtml, (err) => {
-        if (err) throw err;
-  
-        // success case, the file was saved
-        console.log('File saved!');
-      });
-
-      const globalCss = `html, body {
-        position: relative;
-        width: 100%;
-        height: 100%;
-      }
-      
-      body {
-        color: #333;
-        margin: 0;
-        padding: 8px;
-        box-sizing: border-box;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
-      }
-      
-      a {
-        color: rgb(0,100,200);
-        text-decoration: none;
-      }
-      
-      a:hover {
-        text-decoration: underline;
-      }
-      
-      a:visited {
-        color: rgb(0,80,160);
-      }
-      
-      label {
-        display: block;
-      }
-      
-      input, button, select, textarea {
-        font-family: inherit;
-        font-size: inherit;
-        padding: 0.4em;
-        margin: 0 0 0.5em 0;
-        box-sizing: border-box;
-        border: 1px solid #ccc;
-        border-radius: 2px;
-      }
-      
-      input:disabled {
-        color: #ccc;
-      }
-      
-      input[type="range"] {
-        height: 0;
-      }
-      
-      button {
-        color: #333;
-        background-color: #f4f4f4;
-        outline: none;
-      }
-      
-      button:disabled {
-        color: #999;
-      }
-      
-      button:not(:disabled):active {
-        background-color: #ddd;
-      }
-      
-      button:focus {
-        border-color: #666;
-      }      
-      `;
-  
-      fs.writeFileSync(`jungle/build/${filename}/global.css`, globalCss, (err) => {
-        if (err) throw err;
-  
-        // success case, the file was saved
-        console.log('File saved!');
-      });
+      const globalCss = fs.readFileSync('src/global.css', {encoding:'utf8', flag:'r'});
+      fs.writeFileSync(`jungle/build/${filename}/global.css`, globalCss);
   
       const inputOptions = {
         input: `jungle/build/${filename}/main.js`,
@@ -174,7 +72,6 @@ async function readRoutes() {
       };
       
       const bundle = await rollup.rollup(inputOptions);
-    
       await bundle.write(outputOptions);
   
       app.use(`/${filename}`, express.static(path.join(__dirname, `jungle/build/${filename}`)));
