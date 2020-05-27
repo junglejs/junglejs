@@ -5,7 +5,7 @@ const graphqlRouter = require('express-graphql');
 
 const { schema } = require('./dumbyschema.js');
 
-module.exports.middleware = () => {
+module.exports.default = () => {
 	const app = express();
 
 	app.use(cors());

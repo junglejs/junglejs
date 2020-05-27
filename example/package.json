@@ -16,6 +16,8 @@
     "svelte": "^3.0.0"
   },
   "dependencies": {
+    "@junglejs/preprocess": "file:../junglejs/preprocess",
+    "@junglejs/server": "file:../junglejs/server",
     "cookie-parser": "~1.4.4",
     "debug": "~2.6.9",
     "express": "~4.16.1",

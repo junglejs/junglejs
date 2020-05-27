@@ -1,7 +1,20 @@
-<main>
+<script>
+	const QUERY = `
+		query {
+			posts {
+				title
+				slug
+			}
+		}
+	`;
+	const QUERYRES = {};
+</script>
+
+<main>	
 	<h1>Hi there!</h1>
 	<p>Visit the <a href="https://svelte.dev/tutorial">Svelte tutorial</a> to learn how to build Svelte apps.</p>
 	<p>Or go say <a href="/hello">hello</a></p>
+	{JSON.stringify(QUERYRES)}
 </main>
 
 <style>

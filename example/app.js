@@ -11,6 +11,9 @@ const resolve = require('@rollup/plugin-node-resolve').default;
 const commonjs = require('@rollup/plugin-commonjs');
 const rollup = require('rollup');
 
+const jungleServer = require('@junglejs/server').default;
+const junglePreprocess = require('@junglejs/preprocess').default;
+
 const app = express();
 
 app.use(logger('dev'));
@@ -20,7 +23,7 @@ app.use(cookieParser());
 
 const production = !process.env.ROLLUP_WATCH;
 
-readRoutes().then(() => finish());
+startGraphqlServer(server => readRoutes().then(() => stopGraphqlServer(server, startAppServer)));
 
 async function readRoutes() {
   if (!fs.existsSync(`jungle`)) fs.mkdirSync(`jungle`);
@@ -153,7 +156,10 @@ async function readRoutes() {
             dev: !production,
             css: css => {
               css.write(`jungle/build/${filename}/bundle.css`);
-            }
+            },
+            preprocess: [
+              junglePreprocess(),
+            ]
           }),
       
           resolve(),
@@ -176,7 +182,7 @@ async function readRoutes() {
   });
 }
 
-function finish() {
+function startAppServer() {
   const port = normalizePort(process.env.PORT || '3000');
 
   app.set('port', port);
@@ -184,8 +190,32 @@ function finish() {
   const server = http.createServer(app);
   
   server.listen(port);
-  server.on('error', onError);
+  server.on('error', (err) => onError(err, port));
   server.on('listening', () => onListening(server));
+}
+
+function stopGraphqlServer(server, callback) {
+  server.close();
+  server.on('close', () => {console.log('Stopped GraphQL Server'); callback()});
+}
+
+function startGraphqlServer(callback) {
+  const port = normalizePort(process.env.PORT || '3000');
+
+  const jServer = jungleServer();
+
+  jServer.use(logger('dev'));
+  jServer.use(express.json());
+  jServer.use(express.urlencoded({ extended: false }));
+  jServer.use(cookieParser());
+
+  jServer.set('port', port);
+  
+  const server = http.createServer(jServer);
+  
+  server.listen(port);
+  server.on('error', onError);
+  server.on('listening', () => {console.log('Started GraphQL Server'); callback(server)});
 }
 
 function normalizePort(val) {
@@ -202,7 +232,7 @@ function normalizePort(val) {
   return false;
 }
 
-function onError(error) {
+function onError(error, port) {
   if (error.syscall !== 'listen') {
     throw error;
   }
