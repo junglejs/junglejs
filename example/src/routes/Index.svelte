@@ -2,11 +2,9 @@
 	import Nav from "../components/Nav.svelte";
 </script>
 
-<Nav page="/hello/"/>
+<Nav page="/"/>
 <main>
-	<h1>Hello there!</h1>
-	<p>Visit the <a href="https://svelte.dev/tutorial">Svelte tutorial</a> to learn how to build Svelte apps.</p>
-	<p>Or go say <a href="/hi/">hi</a></p>
+	<h1>Welcome!</h1>
 </main>
 
 <style>

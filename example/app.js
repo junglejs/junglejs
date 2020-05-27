@@ -4,7 +4,7 @@ const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 const debug = require('debug')('express:server');
 const http = require('http');
-const fs = require('fs');
+const fs = require('fs-extra');
 
 const svelte = require('rollup-plugin-svelte');
 const resolve = require('@rollup/plugin-node-resolve').default;
@@ -29,24 +29,23 @@ async function readRoutes() {
   if (!fs.existsSync(`jungle`)) fs.mkdirSync(`jungle`);
   if (!fs.existsSync(`jungle/build`)) fs.mkdirSync(`jungle/build`);
 
+  await fs.copy('static', 'jungle/build');
+
   await asyncForEach(fs.readdirSync('src/routes'), async (file) => {
     const fileParts = file.split('.');
     const isSvelteFile = fileParts[fileParts.length - 1] === 'svelte' && fileParts.length == 2;
     
     if (isSvelteFile) {
-      const filename = fileParts[0].toLowerCase();
+      const filename = fileParts[0] != 'Index' ? fileParts[0].toLowerCase() : '.';
         
       if (!fs.existsSync(`jungle/build/${filename}`)) fs.mkdirSync(`jungle/build/${filename}`);
 
       const mainJs = `import ${fileParts[0]} from '${path.join(__dirname, `src/routes/${file}`)}'; export default new ${fileParts[0]}({target: document.body});`;
       fs.writeFileSync(`jungle/build/${filename}/main.js`, mainJs);
-  
+
       const indexHtml = fs.readFileSync('src/template.html', {encoding:'utf8', flag:'r'});
       fs.writeFileSync(`jungle/build/${filename}/index.html`, indexHtml);
 
-      const globalCss = fs.readFileSync('src/global.css', {encoding:'utf8', flag:'r'});
-      fs.writeFileSync(`jungle/build/${filename}/global.css`, globalCss);
-  
       const inputOptions = {
         input: `jungle/build/${filename}/main.js`,
         plugins: [
@@ -73,10 +72,12 @@ async function readRoutes() {
       
       const bundle = await rollup.rollup(inputOptions);
       await bundle.write(outputOptions);
-  
-      app.use(`/${filename}`, express.static(path.join(__dirname, `jungle/build/${filename}`)));
+
+      await fs.remove(`jungle/build/${filename}/main.js`);
     }
   });
+
+  app.use(express.static(path.join(__dirname, 'jungle/build/')));
 }
 
 function startAppServer() {
