@@ -1,5 +1,5 @@
 # JungleJS
-The Jamstack static site framework for Svelte/Sapper
+The Jamstack static site framework for Svelte
 
 WARNING: This is an early preview in active development, mostly used for testing different components right now that could become a full framework in the future
 
