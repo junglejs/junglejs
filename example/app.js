@@ -77,6 +77,8 @@ async function readRoutes() {
     }
   });
 
+  console.log("Preprocessed Queries");
+
   app.use(express.static(path.join(__dirname, 'jungle/build/')));
 }
 
