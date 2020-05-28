@@ -2,6 +2,10 @@
 	import Nav from "../components/Nav.svelte";
 </script>
 
+<svelte:head>
+	<title>Index - Example JungleJS App</title>
+</svelte:head>
+
 <Nav page="/"/>
 <main>
 	<h1>Welcome!</h1>
