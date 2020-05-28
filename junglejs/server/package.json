@@ -26,12 +26,18 @@
   },
   "homepage": "https://github.com/ConProgramming/junglejs#readme",
   "dependencies": {
+    "cookie-parser": "^1.4.5",
     "cors": "^2.8.5",
     "express": "^4.17.1",
     "express-graphql": "^0.9.0",
+    "fs-extra": "^9.0.0",
     "graphql": "^15.0.0",
     "graphql-compose": "^7.16.1",
     "graphql-playground-middleware-express": "^1.7.14",
-    "lodash.find": "^4.6.0"
+    "http": "0.0.1-security",
+    "lodash.find": "^4.6.0",
+    "morgan": "^1.10.0",
+    "path": "^0.12.7",
+    "rollup": "^2.11.2"
   }
 }
