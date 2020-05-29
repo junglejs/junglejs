@@ -38,7 +38,7 @@ module.exports.default = () => {
 				fetch: fetch,
 			});
 
-			const data = JSON.stringify(await client.query({ query: gql`${query}` }));
+			const data = JSON.stringify((await client.query({ query: gql`${query}` })).data);
 
 			const finalCode = content.slice(0, resVarStart) + resVarName + " = " + data + content.slice(resVarEnd, content.length);
 
