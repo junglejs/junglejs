@@ -70,38 +70,47 @@ module.exports = {
 		server.on('listening', () => onListening(server));
 	},
 	readRoutes: async (jungleConfig, app, dirname) => {
-		if (!fs.existsSync(`jungle`)) fs.mkdirSync(`jungle`);
-		if (!fs.existsSync(`jungle/build`)) fs.mkdirSync(`jungle/build`);
-
+		await fs.remove(`jungle/build`);
+		await fs.ensureDir(`jungle/build`);
 		await fs.copy('static', 'jungle/build');
 
-		await asyncForEach(fs.readdirSync('src/routes'), async (file) => {
-			const fileParts = file.split('.');
-			const isSvelteFile = fileParts[fileParts.length - 1] === 'svelte' && fileParts.length == 2;
-
-			if (isSvelteFile) {
-				const filename = fileParts[0] != 'Index' ? fileParts[0].toLowerCase() : '.';
-
-				if (!fs.existsSync(`jungle/build/${filename}`)) fs.mkdirSync(`jungle/build/${filename}`);
-
-				const mainJs = `import ${fileParts[0]} from '${path.join(dirname, `src/routes/${file}`)}'; export default new ${fileParts[0]}({target: document.body});`;
-				const indexHtml = fs.readFileSync('src/template.html', { encoding: 'utf8', flag: 'r' });
-
-				fs.writeFileSync(`jungle/build/${filename}/main.js`, mainJs);
-				fs.writeFileSync(`jungle/build/${filename}/index.html`, indexHtml);
-
-				const bundle = await rollup.rollup(jungleConfig.inputOptions(filename));
-				await bundle.write(jungleConfig.outputOptions(filename));
-
-				await fs.remove(`jungle/build/${filename}/main.js`);
-			}
-		});
+		await processDirectory(jungleConfig, dirname, 'src/routes');
 
 		console.log("Preprocessed Queries");
 
 		app.use(express.static(path.join(dirname, 'jungle/build/')));
 	},
 };
+
+async function processDirectory(jungleConfig, dirname, src, extension = '') {
+	await asyncForEach(fs.readdirSync(src+extension), async (file) => {
+		if (fs.statSync(src+extension+'/'+file).isDirectory()) {
+			await processDirectory(jungleConfig, dirname, src, `${extension}/${file}`);
+		} else {
+			const fileParts = file.split('.');
+			const isSvelteFile = fileParts[fileParts.length - 1] === 'svelte' && fileParts.length == 2;
+			const isFileParameters = fileParts[0][0] == "[" && fileParts[0][fileParts[0].length-1] == "]";
+			const fileParameters = isFileParameters ? fileParts[0].substring(1, fileParts[0].length-1).split(',') : [];
+
+			if (isSvelteFile) {
+				const filename = fileParts[0] != 'Index' ? fileParts[0].toLowerCase() : '.';
+
+				await fs.ensureDir(`jungle/build${extension}/${filename}/`);
+
+				const mainJs = `import SFile from '${path.join(dirname, `${src}${extension}/${file}`)}'; export default new SFile({target: document.body});`;
+				const indexHtml = fs.readFileSync('src/template.html', { encoding: 'utf8', flag: 'r' });
+
+				fs.writeFileSync(`jungle/build${extension}/${filename}/main.js`, mainJs);
+				fs.writeFileSync(`jungle/build${extension}/${filename}/index.html`, indexHtml);
+
+				const bundle = await rollup.rollup(jungleConfig.inputOptions(filename, extension));
+				await bundle.write(jungleConfig.outputOptions(filename, extension));
+
+				await fs.remove(`jungle/build${extension}/${filename}/main.js`);
+			}
+		}
+	});
+}
 
 async function asyncForEach(array, callback) {
 	for (let index = 0; index < array.length; index++) {

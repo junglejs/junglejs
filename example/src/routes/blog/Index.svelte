@@ -9,7 +9,7 @@
 	`;
 	const QUERYRES = {};
 
-	import Nav from "../components/Nav.svelte";
+	import Nav from "../../components/Nav.svelte";
 </script>
 
 <Nav page="/blog/"/>
@@ -50,7 +50,7 @@
 
     <ul>
         {#each QUERYRES.posts as post}
-            <li><a href='blog/{post.slug}'>{post.title}</a></li>
+            <li><a href='/blog/{post.slug}'>{post.title}</a></li>
         {/each}
     </ul>
 </main>

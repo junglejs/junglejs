@@ -8,14 +8,14 @@ const junglePreprocess = require('@junglejs/preprocess').default;
 const production = !!process.env.PRODUCTION;
 
 module.exports = {
-    inputOptions: (filename) => {
+    inputOptions: (filename, extension) => {
         return {
-            input: `jungle/build/${filename}/main.js`,
+            input: `jungle/build${extension}/${filename}/main.js`,
             plugins: [
                 svelte({
                     dev: !production,
                     css: css => {
-                        css.write(`jungle/build/${filename}/bundle.css`);
+                        css.write(`jungle/build${extension}/${filename}/bundle.css`);
                     },
                     preprocess: [
                         junglePreprocess(),
@@ -29,12 +29,12 @@ module.exports = {
             ],
         }
     },
-    outputOptions: (filename) => {
+    outputOptions: (filename, extension) => {
         return {
             sourcemap: true,
             format: 'iife',
             name: 'app',
-            file: `jungle/build/${filename}/bundle.js`,
+            file: `jungle/build${extension}/${filename}/bundle.js`,
         }
     },
     dataSources: [

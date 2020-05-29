@@ -7,7 +7,7 @@ const ApolloClient = require('apollo-boost').default;
 
 module.exports.default = () => {
 	return {
-		script: async ({ content }) => {
+		script: async ({ content, filename }) => {
 			const queryName = "QUERY";
 			const resVarName = "QUERYRES";
 			const port = process.env.PORT || '3000';
