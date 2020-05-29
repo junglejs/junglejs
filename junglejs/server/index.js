@@ -3,6 +3,8 @@ const debug = require('debug')('express:server');
 const path = require('path');
 const rollup = require('rollup');
 const fs = require('fs-extra');
+const grayMatter = require('gray-matter');
+const marked = require('marked');
 const cors = require('cors');
 const graphqlPlayround = require('graphql-playground-middleware-express').default;
 const graphqlRouter = require('express-graphql');
@@ -12,7 +14,11 @@ const http = require('http');
 
 const { schema } = require('./dumbyschema.js');
 
-const jungleGraphql = () => {
+const { SchemaComposer } = require('graphql-compose');
+const { composeWithJson } = require('graphql-compose-json');
+const find = require('lodash.find');;
+
+const jungleGraphql = (jungleConfig, dirname) => {
 	const app = express();
 
 	app.use(logger('dev'));
@@ -21,9 +27,8 @@ const jungleGraphql = () => {
 	app.use(cookieParser());
 	app.use(cors());
 
-	app.use('/graphql', graphqlRouter({ schema: schema, graphiql: false }));
+	app.use('/graphql', graphqlRouter({ schema: generateSchema(jungleConfig.dataSources, dirname), graphiql: false }));
 	app.get('/playground', graphqlPlayround({ endpoint: '/graphql' }));
-
 
 	return app;
 }
@@ -31,10 +36,10 @@ const jungleGraphql = () => {
 let graphqlServer;
 
 module.exports = {
-	startGraphqlServer: (callback) => {
+	startGraphqlServer: (jungleConfig, dirname, callback) => {
 		const port = normalizePort(process.env.PORT || '3000');
 
-		const jGraphql = jungleGraphql();
+		const jGraphql = jungleGraphql(jungleConfig, dirname);
 
 		jGraphql.set('port', port);
 
@@ -98,8 +103,6 @@ module.exports = {
 	},
 };
 
-
-
 async function asyncForEach(array, callback) {
 	for (let index = 0; index < array.length; index++) {
 		await callback(array[index], index, array);
@@ -147,8 +150,68 @@ function normalizePort(val) {
 function onListening(server) {
 	const addr = server.address();
 	const bind = typeof addr === 'string'
-	  ? 'pipe ' + addr
-	  : 'port ' + addr.port;
+		? 'pipe ' + addr
+		: 'port ' + addr.port;
 	debug('Listening on ' + bind);
 	console.log('Server listening on ' + bind + '\n');
-  }
+}
+
+function generateSchema(dataSources, dirname) {
+	const schemaComposer = new SchemaComposer();
+
+	dataSources.forEach(source => {
+		const typeName = source.name.charAt(0).toUpperCase() + source.name.slice(1);
+		let newFields = {};
+
+		switch (source.format) {
+			case "json":
+				composeWithJson(typeName, source.items[0], { schemaComposer });
+
+				newFields[source.name] = {
+					type: typeName,
+					args: source.queryArgs,
+					resolve: (_, args) => find(source.items, args),
+				};
+
+				newFields[source.name + "s"] = {
+					type: `[${typeName}]`,
+					resolve: () => source.items,
+				};
+				break;
+			case "dir/markdown":
+				const frontMatterData = fs.readdirSync(path.join(dirname, source.items)).map((fileName) => {
+					const post = fs.readFileSync(
+						path.resolve(path.join(dirname, source.items), fileName),
+						"utf-8"
+					);
+
+					const renderer = new marked.Renderer();
+
+					const { data, content } = grayMatter(post);
+					const html = marked(content, { renderer });
+
+					data['path'] = fileName.substring(0, fileName.length - 3);
+
+					return { html, ...data };
+				})
+
+				composeWithJson(typeName, frontMatterData[0], { schemaComposer });
+
+				newFields[source.name] = {
+					type: typeName,
+					args: source.queryArgs,
+					resolve: (_, args) => find(frontMatterData, args),
+				};
+
+				newFields[source.name + "s"] = {
+					type: `[${typeName}]`,
+					resolve: () => frontMatterData,
+				};
+				break;
+		}
+
+		schemaComposer.Query.addFields(newFields);
+	});
+
+	return schemaComposer.buildSchema();
+}

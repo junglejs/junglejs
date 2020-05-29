@@ -1,27 +1,12 @@
 const { schemaComposer } = require('graphql-compose');
+const { composeWithJson } = require('graphql-compose-json');
 const find = require('lodash.find');;
 
 const { authors, posts } = require('./dumbydata');
- 
-const AuthorTC = schemaComposer.createObjectTC({
-  name: 'Author',
-  fields: {
-    id: 'Int!',
-    firstName: 'String',
-    lastName: 'String',
-  },
-});
 
-const PostTC = schemaComposer.createObjectTC({
-  name: 'Post',
-  fields: {
-    slug: 'String!',
-    title: 'String',
-    html: 'String',
-    votes: 'Int',
-    authorId: 'Int',
-  },
-});
+const AuthorTC = composeWithJson('Author', authors[0]);
+
+const PostTC = composeWithJson('Post', posts[0]);
 
 PostTC.addFields({
   author: {
@@ -62,5 +47,7 @@ schemaComposer.Query.addFields({
     resolve: (_, { id }) => find(authors, { id }),
   },
 });
+
+
 
 module.exports.schema = schemaComposer.buildSchema();
