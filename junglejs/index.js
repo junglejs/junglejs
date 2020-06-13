@@ -6,7 +6,6 @@ const fs = require('fs-extra');
 const grayMatter = require('gray-matter');
 const marked = require('marked');
 const cors = require('cors');
-const graphqlPlayround = require('graphql-playground-middleware-express').default;
 const graphqlRouter = require('express-graphql');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
@@ -26,7 +25,6 @@ const jungleGraphql = (jungleConfig, dirname) => {
 	app.use(cors());
 
 	app.use('/graphql', graphqlRouter({ schema: generateSchema(jungleConfig.dataSources, dirname), graphiql: false }));
-	app.get('/playground', graphqlPlayround({ endpoint: '/graphql' }));
 
 	return app;
 }

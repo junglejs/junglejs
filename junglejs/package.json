@@ -37,7 +37,6 @@
         "graphql": "^15.0.0",
         "graphql-compose": "^7.16.1",
         "graphql-compose-json": "^5.3.0",
-        "graphql-playground-middleware-express": "^1.7.14",
         "graphql-tag": "^2.10.3",
         "gray-matter": "^4.0.2",
         "htmlparser2": "^4.1.0",
