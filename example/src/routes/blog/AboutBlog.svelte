@@ -1,18 +1,8 @@
 <script>
-	const QUERY = `
-		query {
-			posts {
-				title
-				slug
-			}
-		}
-	`;
-	const QUERYRES = {};
-
 	import Nav from "../../components/Nav.svelte";
 </script>
 
-<Nav page="/blog/"/>
+<Nav page="/blog/about-blog"/>
 
 <style>
 	main {
@@ -46,11 +36,7 @@
 </svelte:head>
 
 <main>
-    <h1>Recent posts</h1>
-	<h3><a href="/blog/about-blog">About</a></h3>
-    <ul>
-        {#each QUERYRES.posts as post}
-            <li><a href='/blog/{post.slug}'>{post.title}</a></li>
-        {/each}
-    </ul>
+    <h1>About the Blog</h1>
+
+    <p>Trying to write awesome stuff here!</p>
 </main>

@@ -3,7 +3,7 @@ const { terser } = require('rollup-plugin-terser');
 const resolve = require('@rollup/plugin-node-resolve').default;
 const commonjs = require('@rollup/plugin-commonjs');
 
-const junglePreprocess = require('@junglejs/preprocess').default;
+const { junglePreprocess } = require('junglejs');
 
 const production = !!process.env.PRODUCTION;
 
@@ -18,7 +18,7 @@ module.exports = {
                         css.write(`jungle/build${extension}/${filename}/bundle.css`);
                     },
                     preprocess: [
-                        junglePreprocess(),
+                        junglePreprocess,
                     ]
                 }),
 

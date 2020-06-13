@@ -12,8 +12,6 @@ const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 const http = require('http');
 
-const { schema } = require('./dumbyschema.js');
-
 const { SchemaComposer } = require('graphql-compose');
 const { composeWithJson } = require('graphql-compose-json');
 const find = require('lodash.find');;
@@ -35,7 +33,54 @@ const jungleGraphql = (jungleConfig, dirname) => {
 
 let graphqlServer;
 
+const acorn = require("acorn");
+const walk = require("acorn-walk");
+
+const gql = require('graphql-tag');
+const fetch = require("node-fetch");
+const ApolloClient = require('apollo-boost').default;
+
+const port = process.env.PORT || '3000';
+
 module.exports = {
+	junglePreprocess: {
+		script: async ({ content, filename }) => {
+			const queryName = "QUERY";
+			const resVarName = "QUERYRES";
+
+			const tree = acorn.parse(content, { sourceType: "module" });
+			let resVarStart, resVarEnd, queryVarStart, queryVarEnd;
+
+			walk.simple(tree, {
+				VariableDeclaration(node) {
+					node.declarations.forEach((declaration) => {
+						if (declaration.id.name === queryName) {
+							queryVarStart = declaration.init.start + 1;
+							queryVarEnd = declaration.init.end - 1;
+						} else if (declaration.id.name === resVarName) {
+							resVarStart = declaration.start;
+							resVarEnd = declaration.end;
+						}
+					});
+				},
+			});
+
+			if (!resVarStart || !queryVarStart) return { code: content };
+
+			const query = content.slice(queryVarStart, queryVarEnd);
+
+			const client = new ApolloClient({
+				uri: `http://localhost:${port}/graphql`,
+				fetch: fetch,
+			});
+
+			const data = JSON.stringify((await client.query({ query: gql`${query}` })).data);
+
+			const finalCode = content.slice(0, resVarStart) + resVarName + " = " + data + content.slice(resVarEnd, content.length);
+
+			return { code: finalCode };
+		},
+	},
 	startGraphqlServer: (jungleConfig, dirname, callback) => {
 		const port = normalizePort(process.env.PORT || '3000');
 
@@ -74,13 +119,51 @@ module.exports = {
 		await fs.ensureDir(`jungle/build`);
 		await fs.copy('static', 'jungle/build');
 
+		const paramGeneratedFiles = await processDirectoryForParameters(jungleConfig, dirname, 'src/routes');
 		await processDirectory(jungleConfig, dirname, 'src/routes');
+		paramGeneratedFiles.forEach(path => fs.removeSync(path))
 
 		console.log("Preprocessed Queries");
 
 		app.use(express.static(path.join(dirname, 'jungle/build/')));
 	},
 };
+
+async function processDirectoryForParameters(jungleConfig, dirname, src, extension = '', paramGeneratedFiles = []) {
+	await asyncForEach(fs.readdirSync(src+extension), async (file) => {
+		if (fs.statSync(src+extension+'/'+file).isDirectory()) {
+			await processDirectoryForParameters(jungleConfig, dirname, src, `${extension}/${file}`, paramGeneratedFiles);
+		} else {
+			const fileParts = file.split('.');
+			const isSvelteFile = fileParts[fileParts.length - 1] === 'svelte' && fileParts.length == 2;
+			const isFileParameters = fileParts[0][0] == "[" && fileParts[0][fileParts[0].length-1] == "]";
+			const fileParameters = isFileParameters ? fileParts[0].substring(1, fileParts[0].length-1).split(',') : [];
+
+			if (isSvelteFile && isFileParameters) {
+				const rawSvelteFile = fs.readFileSync(path.join(dirname, `${src}${extension}/${file}`), "utf8");
+				const queryParamOpts =  RegExp(/const QUERYPARAMOPTS = `([^]*)`;/gm).exec(rawSvelteFile)[1];
+				
+				const client = new ApolloClient({uri: `http://localhost:${port}/graphql`, fetch: fetch});
+				const data = Object.values((await client.query({ query: gql`${queryParamOpts}` })).data)[0];
+
+				const parameterOptions = {};
+				parameterOptions[Object.keys(data[0])[0]] = data.map(m => Object.values(m)[0]);
+
+				fileParameters.forEach(fileParameter => {
+					parameterOptions[fileParameter].forEach(paramOption => {
+						const pFilename = paramOption.split("-").map(s => s.charAt(0).toUpperCase() + s.slice(1)).join("");
+						const processedFile = rawSvelteFile.replace('${'+`QUERYPARAMS['${fileParameter}']`+'}', paramOption);
+
+						fs.writeFileSync(path.join(dirname, `${src}${extension}/${pFilename}.svelte`), processedFile);
+						paramGeneratedFiles.push(`${src}${extension}/${pFilename}.svelte`);
+					});
+				});
+			}
+		}
+	});
+
+	return paramGeneratedFiles;
+}
 
 async function processDirectory(jungleConfig, dirname, src, extension = '') {
 	await asyncForEach(fs.readdirSync(src+extension), async (file) => {
@@ -90,11 +173,11 @@ async function processDirectory(jungleConfig, dirname, src, extension = '') {
 			const fileParts = file.split('.');
 			const isSvelteFile = fileParts[fileParts.length - 1] === 'svelte' && fileParts.length == 2;
 			const isFileParameters = fileParts[0][0] == "[" && fileParts[0][fileParts[0].length-1] == "]";
-			const fileParameters = isFileParameters ? fileParts[0].substring(1, fileParts[0].length-1).split(',') : [];
 
-			if (isSvelteFile) {
-				const filename = fileParts[0] != 'Index' ? fileParts[0].toLowerCase() : '.';
-
+			if (isSvelteFile && !isFileParameters) {
+				//If Index, set to be root of the built folder, else join a multiword into hyphen seperated lowercase words
+				const filename = fileParts[0] != 'Index' ? fileParts[0].match(/[A-Z]+(?![a-z])|[A-Z]?[a-z]+|\d+/g).join('-').toLowerCase() : '.';
+				
 				await fs.ensureDir(`jungle/build${extension}/${filename}/`);
 
 				const mainJs = `import SFile from '${path.join(dirname, `${src}${extension}/${file}`)}'; export default new SFile({target: document.body});`;
@@ -160,7 +243,7 @@ function onListening(server) {
 	const addr = server.address();
 	const bind = typeof addr === 'string'
 		? 'pipe ' + addr
-		: 'port ' + addr.port;
+		: 'http://localhost:' + addr.port;
 	debug('Listening on ' + bind);
 	console.log('Server listening on ' + bind + '\n');
 }

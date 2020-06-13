@@ -1,6 +1,6 @@
 const express = require('express');
 
-const { startGraphqlServer, stopGraphqlServer, startAppServer, readRoutes } = require('@junglejs/server');
+const { startGraphqlServer, stopGraphqlServer, startAppServer, readRoutes } = require('junglejs');
 
 const jungleConfig = require('./jungle.config');
 

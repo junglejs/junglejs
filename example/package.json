@@ -16,8 +16,7 @@
     "svelte": "^3.0.0"
   },
   "dependencies": {
-    "@junglejs/preprocess": "file:../junglejs/preprocess",
-    "@junglejs/server": "file:../junglejs/server",
+    "junglejs": "file:../junglejs",
     "express": "~4.16.1"
   }
 }

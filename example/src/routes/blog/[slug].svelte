@@ -1,7 +1,7 @@
 <script>
 	const QUERY = `
 		query {
-			post(slug: "example-post") {
+			post(slug: "${QUERYPARAMS['slug']}") {
 				title
 				slug
 				html
@@ -9,7 +9,14 @@
 		}
 	`;
 	const QUERYRES = {};
-	const QUERYPARAMS = {};
+	
+	const QUERYPARAMOPTS = `
+		query {
+			posts {
+				slug
+			}
+		}
+	`;
 
 	import Nav from "../../components/Nav.svelte";
 </script>
