@@ -187,6 +187,8 @@ async function processDirectory(jungleConfig, dirname, src, extension = '') {
 				const bundle = await rollup.rollup(jungleConfig.inputOptions(filename, extension));
 				await bundle.write(jungleConfig.outputOptions(filename, extension));
 
+				await fs.remove(`jungle/build${extension}/${filename}/bundle.css.map`);
+				await fs.remove(`jungle/build${extension}/${filename}/bundle.js.map`);
 				await fs.remove(`jungle/build${extension}/${filename}/main.js`);
 			}
 		}
