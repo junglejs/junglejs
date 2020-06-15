@@ -1,4 +1,4 @@
-# JungleJS
+# [JungleJS](https://junglejs.org/) &middot; [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/facebook/react/blob/master/LICENSE) [![npm version](https://img.shields.io/npm/v/junglejs.svg?style=flat)](https://www.npmjs.com/package/junglejs) [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://reactjs.org/docs/how-to-contribute.html#your-first-pull-request)
 The Jamstack static site framework for Svelte
 
 WARNING: This is an early preview in active development
