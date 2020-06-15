@@ -1,6 +1,6 @@
 {
     "name": "junglejs",
-    "version": "0.1.0",
+    "version": "1.0.0",
     "description": "The Jamstack static site framework for Svelte",
     "main": "index.js",
     "scripts": {
