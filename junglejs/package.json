@@ -1,9 +1,10 @@
 {
     "name": "junglejs",
-    "version": "0.0.1",
+    "version": "0.1.0",
     "description": "The Jamstack static site framework for Svelte",
     "main": "index.js",
     "scripts": {
+        "np": "np",
         "test": "echo \"Error: no test specified\" && exit 1"
     },
     "repository": {
@@ -47,5 +48,8 @@
         "node-fetch": "^2.6.0",
         "path": "^0.12.7",
         "rollup": "^2.11.2"
+    },
+    "devDependencies": {
+        "np": "^6.2.4"
     }
 }
