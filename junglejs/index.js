@@ -150,7 +150,7 @@ async function processDirectoryForParameters(jungleConfig, dirname, src, extensi
 				fileParameters.forEach(fileParameter => {
 					parameterOptions[fileParameter].forEach(paramOption => {
 						const pFilename = paramOption.split("-").map(s => s.charAt(0).toUpperCase() + s.slice(1)).join("");
-						const processedFile = rawSvelteFile.replace('${'+`QUERYPARAMS['${fileParameter}']`+'}', paramOption);
+						const processedFile = rawSvelteFile.replace('${'+`QUERYPARAMS['${fileParameter}']`+'}', paramOption).replace('${'+`QUERYPARAMS["${fileParameter}"]`+'}', paramOption);
 
 						fs.writeFileSync(path.join(dirname, `${src}${extension}/${pFilename}.svelte`), processedFile);
 						paramGeneratedFiles.push(`${src}${extension}/${pFilename}.svelte`);
