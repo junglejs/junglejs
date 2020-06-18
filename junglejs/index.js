@@ -139,7 +139,7 @@ async function processDirectoryForParameters(jungleConfig, dirname, src, extensi
 
 			if (isSvelteFile && isFileParameters) {
 				const rawSvelteFile = fs.readFileSync(path.join(dirname, `${src}${extension}/${file}`), "utf8");
-				const queryParamOpts =  RegExp(/const QUERYPARAMOPTS = `([^]*)`;/gm).exec(rawSvelteFile)[1];
+				const queryParamOpts =  RegExp(/const QUERYPARAMOPTS = `([^]*?)`;/gm).exec(rawSvelteFile)[1];
 				
 				const client = new ApolloClient({uri: `http://localhost:${port}/graphql`, fetch: fetch});
 				const data = Object.values((await client.query({ query: gql`${queryParamOpts}` })).data)[0];
