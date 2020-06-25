@@ -1,5 +1,9 @@
 <script>
 	import Nav from "../components/Nav.svelte";
+
+	function hello() {
+		alert('Hello!');
+	}
 </script>
 
 <Nav page="/hello/"/>
@@ -7,6 +11,7 @@
 	<h1>Hello there!</h1>
 	<p>Visit the <a href="https://svelte.dev/tutorial">Svelte tutorial</a> to learn how to build Svelte apps.</p>
 	<p>Or go say <a href="/hi/">hi</a></p>
+	<button on:click={hello}>Hello</button>
 </main>
 
 <style>

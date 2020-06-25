@@ -12,9 +12,39 @@ const fs = require('fs');
 const templateHtml = fs.readFileSync('src/template.html', { encoding: 'utf8', flag: 'r' });
 
 module.exports = {
-    inputOptions: (filename, extension) => {
+    clientInputOptions: (filename, extension) => {
+        return {
+            input: `jungle/build${extension}/${filename}/main.js`,
+            plugins: [
+                svelte({
+                    dev: !production,
+                    hydratable: true,
+                    preprocess: [
+                        junglePreprocess,
+                    ],
+                }),
+
+                resolve({
+                    browser: true,
+                    dedupe: ["svelte"],
+                }),
+                commonjs(),
+
+                production && terser(),
+            ],
+        }
+    },
+    clientOutputOptions: (filename, extension) => {
+        return {
+            sourcemap: /*!production ? 'inline' : */false,
+            format: 'iife',
+            name: "app",
+            file: `jungle/build${extension}/${filename}/bundle.js`,
+        };
+    },
+    ssrInputOptions: (filename, extension) => {
         const processedFilename = filename == "." ? "Index" : filename.split("-").map(s => s.charAt(0).toUpperCase() + s.slice(1)).join("");
-        
+
         return {
             input: `src/routes${extension}/${processedFilename}.svelte`,
             plugins: [
@@ -25,28 +55,33 @@ module.exports = {
                     ],
                     generate: "ssr",
                     hydratable: true,
-                }),
-                        
-                ssr({
-                    fileName: 'index.html',
-                    configureExport: function(html, css) {
-                        return templateHtml.replace('{jungle.export.style}', `<style>${css}</style>`).replace('{jungle.export.html}', html);
+                    css: (css) => {
+                        css.write(`jungle/build${extension}/${filename}/bundle.css`);
                     },
                 }),
 
-                resolve(),
+                resolve({
+                    browser: true,
+                    dedupe: ["svelte"],
+                }),
                 commonjs(),
 
                 production && terser(),
+
+                ssr({
+                    fileName: 'index.html',
+                    configureExport: function (html, css) {
+                        return templateHtml.replace('{jungle.export.html}', html);
+                    },
+                }),
             ],
         }
     },
-    outputOptions: (filename, extension) => {
+    ssrOutputOptions: (filename, extension) => {
         return {
-            sourcemap: true,
+            sourcemap: /*!production ? 'inline' : */false,
             format: 'cjs',
-            name: 'app',
-            file: `jungle/build${extension}/${filename}/bundle.js`,
+            file: `jungle/build${extension}/${filename}/ssr.js`,
         }
     },
     dataSources: [

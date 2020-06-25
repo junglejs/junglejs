@@ -178,10 +178,18 @@ async function processDirectory(jungleConfig, dirname, src, extension = '') {
 				
 				await fs.ensureDir(`jungle/build${extension}/${filename}/`);
 
-				const bundle = await rollup.rollup(jungleConfig.inputOptions(filename, extension));
-				await bundle.write(jungleConfig.outputOptions(filename, extension));
+				const mainJs = `import SFile from '${path.join(dirname, `${src}${extension}/${file}`)}'; export default new SFile({target: document.body, hydrate: true});`;
 
-				await fs.remove(`jungle/build${extension}/${filename}/bundle.js.map`);
+				fs.writeFileSync(`jungle/build${extension}/${filename}/main.js`, mainJs);
+
+				const clientBundle = await rollup.rollup(jungleConfig.clientInputOptions(filename, extension));
+				await clientBundle.write(jungleConfig.clientOutputOptions(filename, extension));
+
+				const ssrBundle = await rollup.rollup(jungleConfig.ssrInputOptions(filename, extension));
+				await ssrBundle.write(jungleConfig.ssrOutputOptions(filename, extension));
+
+				await fs.remove(`jungle/build${extension}/${filename}/main.js`);
+				await fs.remove(`jungle/build${extension}/${filename}/ssr.js`);
 			}
 		}
 	});
