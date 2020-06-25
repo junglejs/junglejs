@@ -2,24 +2,36 @@ const svelte = require('rollup-plugin-svelte');
 const { terser } = require('rollup-plugin-terser');
 const resolve = require('@rollup/plugin-node-resolve').default;
 const commonjs = require('@rollup/plugin-commonjs');
+const ssr = require('rollup-plugin-svelte-ssr');
 
 const { junglePreprocess } = require('junglejs');
 
 const production = !!process.env.PRODUCTION;
 
+const fs = require('fs');
+const templateHtml = fs.readFileSync('src/template.html', { encoding: 'utf8', flag: 'r' });
+
 module.exports = {
     inputOptions: (filename, extension) => {
+        const processedFilename = filename == "." ? "Index" : filename.split("-").map(s => s.charAt(0).toUpperCase() + s.slice(1)).join("");
+        
         return {
-            input: `jungle/build${extension}/${filename}/main.js`,
+            input: `src/routes${extension}/${processedFilename}.svelte`,
             plugins: [
                 svelte({
                     dev: !production,
-                    css: css => {
-                        css.write(`jungle/build${extension}/${filename}/bundle.css`);
-                    },
                     preprocess: [
                         junglePreprocess,
-                    ]
+                    ],
+                    generate: "ssr",
+                    hydratable: true,
+                }),
+                        
+                ssr({
+                    fileName: 'index.html',
+                    configureExport: function(html, css) {
+                        return templateHtml.replace('{jungle.export.style}', `<style>${css}</style>`).replace('{jungle.export.html}', html);
+                    },
                 }),
 
                 resolve(),
@@ -32,7 +44,7 @@ module.exports = {
     outputOptions: (filename, extension) => {
         return {
             sourcemap: true,
-            format: 'iife',
+            format: 'cjs',
             name: 'app',
             file: `jungle/build${extension}/${filename}/bundle.js`,
         }

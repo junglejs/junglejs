@@ -178,18 +178,10 @@ async function processDirectory(jungleConfig, dirname, src, extension = '') {
 				
 				await fs.ensureDir(`jungle/build${extension}/${filename}/`);
 
-				const mainJs = `import SFile from '${path.join(dirname, `${src}${extension}/${file}`)}'; export default new SFile({target: document.body});`;
-				const indexHtml = fs.readFileSync('src/template.html', { encoding: 'utf8', flag: 'r' });
-
-				fs.writeFileSync(`jungle/build${extension}/${filename}/main.js`, mainJs);
-				fs.writeFileSync(`jungle/build${extension}/${filename}/index.html`, indexHtml);
-
 				const bundle = await rollup.rollup(jungleConfig.inputOptions(filename, extension));
 				await bundle.write(jungleConfig.outputOptions(filename, extension));
 
-				await fs.remove(`jungle/build${extension}/${filename}/bundle.css.map`);
 				await fs.remove(`jungle/build${extension}/${filename}/bundle.js.map`);
-				await fs.remove(`jungle/build${extension}/${filename}/main.js`);
 			}
 		}
 	});
