@@ -178,7 +178,7 @@ async function processDirectory(jungleConfig, dirname, src, extension = '') {
 				
 				await fs.ensureDir(`jungle/build${extension}/${filename}/`);
 
-				const mainJs = `import SFile from '${path.join(dirname, `${src}${extension}/${file}`)}'; export default new SFile({target: document.body, hydrate: true});`;
+				const mainJs = `import SFile from ${JSON.stringify(path.join(dirname, `${src}${extension}/${file}`))}; export default new SFile({target: document.body, hydrate: true});`;
 
 				fs.writeFileSync(`jungle/build${extension}/${filename}/main.js`, mainJs);
 
