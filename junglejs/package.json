@@ -34,7 +34,6 @@
         "cors": "^2.8.5",
         "express": "^4.17.1",
         "express-graphql": "^0.9.0",
-        "express-reload": "^1.2.0",
         "fs-extra": "^9.0.0",
         "graphql": "^15.0.0",
         "graphql-compose": "^7.16.1",
@@ -48,6 +47,7 @@
         "morgan": "^1.10.0",
         "node-fetch": "^2.6.0",
         "path": "^0.12.7",
+        "reload": "^3.1.0",
         "rollup": "^2.11.2"
     },
     "devDependencies": {

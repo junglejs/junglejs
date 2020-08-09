@@ -10,8 +10,8 @@ const graphqlRouter = require('express-graphql');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 const http = require('http');
-const reload = require('express-reload')
 const chokidar = require('chokidar')
+const reload = require('reload')
 
 const { SchemaComposer } = require('graphql-compose');
 const { composeWithJson } = require('graphql-compose-json');
@@ -99,7 +99,7 @@ module.exports = {
 		graphqlServer.close();
 		graphqlServer.on('close', () => { console.log('Stopped GraphQL Server'); callback() });
 	},
-	startAppServer: (jungleConfig, app, dirname, config) => {
+	startAppServer: async (jungleConfig, app, dirname, config = {}) => {
 		const port = normalizePort(appPort);
 		const {watch = "false", watchedFiles = {},} = config
 
@@ -116,22 +116,25 @@ module.exports = {
 		server.on('error', (err) => onError(err, port));
 		server.on('listening', () => onListening(server));
 		if (config.watch){
+			const reloadReturned = await reload(app);
 		watcher = chokidar.watch([`${dirname + '/src'}`, ...config.watchedFiles || '']);
-		watcher.on("change", async () => {this.readRoutes(jungleConfig, app, dirname)	});	}},
-	readRoutes: async (jungleConfig, app, dirname) => {
-		await fs.remove(`jungle/build`);
-		await fs.ensureDir(`jungle/build`);
-		await fs.copy('static', 'jungle/build');
-
-		const paramGeneratedFiles = await processDirectoryForParameters(jungleConfig, dirname, 'src/routes');
-		await processDirectory(jungleConfig, dirname, 'src/routes');
-		paramGeneratedFiles.forEach(path => fs.removeSync(path))
-
-		console.log("Preprocessed Queries");
-
-		app.use(express.static(path.join(dirname, 'jungle/build/')));
-	},
+		watcher.on("change", async () => { await readRoutes(jungleConfig, app, dirname);	  reloadReturned.reload();});       	}},
+	readRoutes
 };
+
+async function readRoutes (jungleConfig, app, dirname) {
+	await fs.remove(`jungle/build`);
+	await fs.ensureDir(`jungle/build`);
+	await fs.copy('static', 'jungle/build');
+
+	const paramGeneratedFiles = await processDirectoryForParameters(jungleConfig, dirname, 'src/routes');
+	await processDirectory(jungleConfig, dirname, 'src/routes');
+	paramGeneratedFiles.forEach(path => fs.removeSync(path))
+
+	console.log("Preprocessed Queries");
+
+	app.use(express.static(path.join(dirname, 'jungle/build/')));
+}
 
 async function processDirectoryForParameters(jungleConfig, dirname, src, extension = '', paramGeneratedFiles = []) {
 	await asyncForEach(fs.readdirSync(src+extension), async (file) => {
