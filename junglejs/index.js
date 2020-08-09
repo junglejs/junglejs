@@ -10,6 +10,8 @@ const graphqlRouter = require('express-graphql');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 const http = require('http');
+const reload = require('express-reload')
+const chokidar = require('chokidar')
 
 const { SchemaComposer } = require('graphql-compose');
 const { composeWithJson } = require('graphql-compose-json');
@@ -38,7 +40,8 @@ const gql = require('graphql-tag');
 const fetch = require("node-fetch");
 const ApolloClient = require('apollo-boost').default;
 
-const port = process.env.PORT || '3000';
+const appPort = process.env.PORT || '3000';
+const graphQLPort = Number(appPort) + 1000;
 
 module.exports = {
 	junglePreprocess: {
@@ -68,7 +71,7 @@ module.exports = {
 			const query = content.slice(queryVarStart, queryVarEnd);
 
 			const client = new ApolloClient({
-				uri: `http://localhost:${port}/graphql`,
+				uri: `http://localhost:${graphQLPort}/graphql`,
 				fetch: fetch,
 			});
 
@@ -80,24 +83,25 @@ module.exports = {
 		},
 	},
 	startGraphqlServer: (jungleConfig, dirname, callback) => {
-		const port = normalizePort(process.env.PORT || '3000');
+		const port = normalizePort(graphQLPort);
 
 		const jGraphql = jungleGraphql(jungleConfig, dirname);
 
-		jGraphql.set('port', port);
+		jGraphql.set('port', graphQLPort);
 
 		graphqlServer = http.createServer(jGraphql);
 
-		graphqlServer.listen(port);
-		graphqlServer.on('error', (err) => onError(err, port));
+		graphqlServer.listen(graphQLPort);
+		graphqlServer.on('error', (err) => onError(err, graphQLPort));
 		graphqlServer.on('listening', () => { console.log('Started GraphQL Server'); callback() });
 	},
 	stopGraphqlServer: (callback) => {
 		graphqlServer.close();
 		graphqlServer.on('close', () => { console.log('Stopped GraphQL Server'); callback() });
 	},
-	startAppServer: (app) => {
-		const port = normalizePort(process.env.PORT || '3000');
+	startAppServer: (jungleConfig, app, dirname, config) => {
+		const port = normalizePort(appPort);
+		const {watch = "false", watchedFiles = {},} = config
 
 		app.use(logger('dev'));
 		app.use(express.json());
@@ -111,7 +115,9 @@ module.exports = {
 		server.listen(port);
 		server.on('error', (err) => onError(err, port));
 		server.on('listening', () => onListening(server));
-	},
+		if (config.watch){
+		watcher = chokidar.watch([`${dirname + '/src'}`, ...config.watchedFiles || '']);
+		watcher.on("change", async () => {this.readRoutes(jungleConfig, app, dirname)	});	}},
 	readRoutes: async (jungleConfig, app, dirname) => {
 		await fs.remove(`jungle/build`);
 		await fs.ensureDir(`jungle/build`);
@@ -141,7 +147,7 @@ async function processDirectoryForParameters(jungleConfig, dirname, src, extensi
 				const rawSvelteFile = fs.readFileSync(path.join(dirname, `${src}${extension}/${file}`), "utf8");
 				const queryParamOpts =  RegExp(/const QUERYPARAMOPTS = `([^]*?)`;/gm).exec(rawSvelteFile)[1];
 				
-				const client = new ApolloClient({uri: `http://localhost:${port}/graphql`, fetch: fetch});
+				const client = new ApolloClient({uri: `http://localhost:${graphQLPort}/graphql`, fetch: fetch});
 				const data = Object.values((await client.query({ query: gql`${queryParamOpts}` })).data)[0];
 
 				const parameterOptions = {};
