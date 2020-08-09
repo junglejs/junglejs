@@ -17,7 +17,7 @@
     "svelte": "^3.0.0"
   },
   "dependencies": {
-    "junglejs": "file:../junglejs",
-    "express": "~4.16.1"
+    "express": "~4.16.1",
+    "junglejs": "file:../junglejs"
   }
 }

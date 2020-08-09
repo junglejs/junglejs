@@ -42,11 +42,11 @@ module.exports = {
             file: `jungle/build${extension}/${filename}/bundle.js`,
         };
     },
-    ssrInputOptions: (filename, extension) => {
+    ssrInputOptions: (filename, extension, src) => {
         const processedFilename = filename == "." ? "Index" : filename.split("-").map(s => s.charAt(0).toUpperCase() + s.slice(1)).join("");
 
         return {
-            input: `src/routes${extension}/${processedFilename}.svelte`,
+            input: `${src}${extension}/${processedFilename}.svelte`,
             plugins: [
                 svelte({
                     dev: !production,

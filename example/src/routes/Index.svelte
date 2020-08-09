@@ -8,7 +8,7 @@
 
 <Nav page="/"/>
 <main>
-	<h1>Welcome!</h1>
+	<h1>Welcome to this app!</h1>
 </main>
 
 <style>
