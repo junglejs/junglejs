@@ -143,6 +143,8 @@ module.exports = {
 	},
 };
 
+//TODO: Add back a way to have an npm run build be possible
+
 async function watchRoutes(jungleConfig, app, dirname) {
 	await fs.remove(`jungle`);
 	await fs.ensureDir(`jungle/build`);
