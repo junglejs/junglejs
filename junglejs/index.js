@@ -58,6 +58,7 @@ const jungleGraphql = (jungleConfig, dirname) => {
 }
 
 let graphqlServer;
+let appServer;
 
 const chokidar = require('chokidar');
 
@@ -69,6 +70,11 @@ const fetch = require("node-fetch");
 const ApolloClient = require('apollo-boost').default;
 
 const port = process.env.GQLPORT || '3001';
+
+process.on('SIGTERM', () => {
+	stopGraphqlServer();
+	stopAppServer();
+})
 
 module.exports = {
 	junglePreprocess: {
@@ -122,7 +128,7 @@ module.exports = {
 		graphqlServer.on('error', (err) => onError(err, port));
 		graphqlServer.on('listening', () => { onListeningGraphQL(graphqlServer); callback() });
 	},
-	startAppServer: (jungleConfig, app, __dirname) => {
+	startAppServer: (jungleConfig, app, __dirname, callback = () => { }) => {
 		const port = normalizePort(process.env.PORT || '3000');
 
 		//app.use(logger('dev'));
@@ -132,15 +138,40 @@ module.exports = {
 
 		app.set('port', port);
 
-		const server = http.createServer(app);
+		appServer = http.createServer(app);
 
-		server.listen(port);
-		server.on('error', (err) => onError(err, port));
-		server.on('listening', () => {
-			onListening(server);
-			watchRoutes(jungleConfig, app, __dirname);
+		appServer.listen(port);
+		appServer.on('error', (err) => onError(err, port));
+		appServer.on('listening', () => {
+			onListening(appServer);
+			callback();
 		});
 	},
+	buildRoutes: async (jungleConfig, dirname, callback = () => { }) => {
+		await fs.remove(`jungle`);
+		await fs.ensureDir(`jungle/build`);
+		await fs.ensureDir(`jungle/.cache`);
+
+		await fs.copy('src/components', 'jungle/.cache/components');
+		await fs.copy('static', 'jungle/build');
+
+		await processDirectory(jungleConfig, dirname, 'src/routes');
+		await processDirectoryForParameters(jungleConfig, dirname, 'src/routes');
+		await processDirectory(jungleConfig, dirname, 'jungle/.cache/routes');
+
+		callback();
+	},
+	watchRoutes,
+};
+
+async function stopGraphqlServer(callback = () => { }) {
+	graphqlServer.close();
+	graphqlServer.on('close', () => { colorLog('green', 'Stopped GraphQL Server'); callback() });
+};
+
+async function stopAppServer(callback = () => { }) {
+	appServer.close();
+	appServer.on('close', () => { colorLog('green', 'Stopped App Server'); callback() });
 };
 
 //TODO: Add back a way to have an npm run build be possible
@@ -184,10 +215,33 @@ async function onRouteUpdate(event, path, src, jungleConfig, dirname) {
 		if (isSvelteFile(fileName)) {
 			if (isFileParameters(fileName)) await processFileForParameters(fileName, dirname, src, pathNoFile);
 			else await processFile(fileName, jungleConfig, dirname, src, pathNoFile);
-			
+
 		}
 	}
 }
+
+async function processDirectoryForParameters(jungleConfig, dirname, src, extension = '', paramGeneratedFiles = []) {
+	await asyncForEach(fs.readdirSync(src + extension), async (file) => {
+		if (fs.statSync(src + extension + '/' + file).isDirectory()) {
+			await processDirectoryForParameters(jungleConfig, dirname, src, `${extension}/${file}`, paramGeneratedFiles);
+		} else {
+			await processFileForParameters(file, dirname, src, extension);
+		}
+	});
+
+	return paramGeneratedFiles;
+}
+
+async function processDirectory(jungleConfig, dirname, src, extension = '') {
+	await asyncForEach(fs.readdirSync(src + extension), async (file) => {
+		if (fs.statSync(src + extension + '/' + file).isDirectory()) {
+			await processDirectory(jungleConfig, dirname, src, `${extension}/${file}`);
+		} else {
+			await processFile(file, jungleConfig, dirname, src, extension);
+		}
+	});
+}
+
 
 async function processFileForParameters(file, dirname, src, extension) {
 	const fileParts = file.split('.');
@@ -239,9 +293,9 @@ async function processFile(file, jungleConfig, dirname, src, extension) {
 
 			await fs.remove(`jungle/build${extension}/${filename}/main.js`);
 			await fs.remove(`jungle/build${extension}/${filename}/ssr.js`);
-		}
 
-		console.log(`Preprocessed route "${extension}/${file}"`);
+			console.log(`Preprocessed route "${extension}/${file}"`);
+		}
 	}
 }
 
@@ -289,7 +343,7 @@ function onListening(server) {
 		? 'pipe ' + addr
 		: 'http://localhost:' + addr.port;
 	debug('Listening on ' + bind);
-	colorLog('green', 'Server listening on ' + bind + '\n');
+	colorLog('green', 'Started App on ' + bind + '\n');
 }
 
 function onListeningGraphQL(server) {
@@ -370,4 +424,10 @@ function isFileParameters(file) {
 function isSvelteFile(file) {
 	const fileParts = file.split('.');
 	return fileParts[fileParts.length - 1] === 'svelte' && fileParts.length == 2;
+}
+
+async function asyncForEach(array, callback) {
+	for (let index = 0; index < array.length; index++) {
+		await callback(array[index], index, array);
+	}
 }

@@ -47,10 +47,10 @@
 
 <main>
     <h1>Recent posts</h1>
-	<h3><a href="/blog/about-blog">About</a></h3>
+	<h3><a href="/blog/about-blog/">About</a></h3>
     <ul>
         {#each QUERYRES.posts as post}
-            <li><a href='/blog/{post.slug}'>{post.title}</a></li>
+            <li><a href='/blog/{post.slug}/'>{post.title}</a></li>
         {/each}
     </ul>
 </main>
