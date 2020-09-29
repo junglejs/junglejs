@@ -59,7 +59,9 @@ const jungleGraphql = (jungleConfig, dirname) => {
 
 let graphqlServer;
 let appServer;
+let liveReloadServer;
 
+const liveReload = require("livereload");
 const chokidar = require('chokidar');
 
 const acorn = require("acorn");
@@ -139,6 +141,7 @@ module.exports = {
 		app.set('port', port);
 
 		appServer = http.createServer(app);
+		liveReloadServer = liveReload.createServer();
 
 		appServer.listen(port);
 		appServer.on('error', (err) => onError(err, port));
@@ -174,28 +177,40 @@ async function stopAppServer(callback = () => { }) {
 	appServer.on('close', () => { colorLog('green', 'Stopped App Server'); callback() });
 };
 
-//TODO: Add back a way to have an npm run build be possible
-
 async function watchRoutes(jungleConfig, app, dirname) {
 	await fs.remove(`jungle`);
 	await fs.ensureDir(`jungle/build`);
 	await fs.ensureDir(`jungle/.cache`);
 
+	app.use(require('connect-livereload')({
+		port: 35729,
+		rules: [{
+			match: /<\/head>(?![\s\S]*<\/head>)/i,
+			fn: (w, s) => s + w,
+		  }, {
+			match: /<\/html>(?![\s\S]*<\/html>)/i,
+			fn: (w, s) => s + w,
+		  }, {
+			match: /<\!DOCTYPE.+?>/i,
+			fn: (w, s) => w + s,
+		  }],		
+	}));
 	app.use(express.static(path.join(dirname, 'jungle/build/')));
+
+	//TODO: Make sure all these changes work on Windows !!!
 
 	//TODO: Add in a service worker or make it stop throwing an error somehow
 
 	//TODO: Rebuild routes that rely on components
-	await chokidar.watch('src/components').on('all', (event, path) => copyStaticFiles(event, path, 'src/components', 'jungle/.cache/components'));
-	await chokidar.watch('static').on('all', (event, path) => copyStaticFiles(event, path, 'static', 'jungle/build'));
+	await chokidar.watch('src/components').on('all', (e, p) => copyStaticFiles(e, p, 'src/components', 'jungle/.cache/components'));
+	await chokidar.watch('static').on('all', (e, p) => copyStaticFiles(e, p, 'static', 'jungle/build'));
 
-	//TODO: Refresh page on update of these
-	await chokidar.watch('src/routes').on('all', (event, path) => onRouteUpdate(event, path, 'src/routes', jungleConfig, dirname));
-	await chokidar.watch('jungle/.cache/routes').on('all', (event, path) => onRouteUpdate(event, path, 'jungle/.cache/routes', jungleConfig, dirname));
+	await chokidar.watch('src/routes').on('all', (e, p) => onRouteUpdate(e, p, 'src/routes', jungleConfig, dirname));
+	await chokidar.watch('jungle/.cache/routes').on('all', (e, p) => onRouteUpdate(e, p, 'jungle/.cache/routes', jungleConfig, dirname));
 }
 
 async function copyStaticFiles(event, path, input, output) {
-	if (event == "change" || event == "add" || event == "unlink") {
+	if (event == "change" || event == "add") {
 		const subPath = path.replace(input, '');
 		await fs.copy(path, output + subPath);
 	} else if (event == "unlink") {
@@ -206,18 +221,30 @@ async function copyStaticFiles(event, path, input, output) {
 
 async function onRouteUpdate(event, path, src, jungleConfig, dirname) {
 	//console.log("EVENT: " + event + " " + path)
-	//TODO: Do something for event "unlink" eg when the file gets deleted
-	if (event == "change" || event == "add") {
+	if (event == "change" || event == "add" || event == "unlink") {
 		const splitPath = path.replace(src, '').split('/');
 		const pathNoFile = splitPath.slice(0, splitPath.length - 1).join('/');
 		const fileName = splitPath[splitPath.length - 1];
 
 		if (isSvelteFile(fileName)) {
-			if (isFileParameters(fileName)) await processFileForParameters(fileName, dirname, src, pathNoFile);
-			else await processFile(fileName, jungleConfig, dirname, src, pathNoFile);
+			if (event == "unlink") {
+				const fileParts = fileName.split('.');
+				if (fileParts[0] == "Index") {
+					colorLog("red", `Route "${pathNoFile}/${fileName}" won't be removed till after rerunning the build process`)
+				} else {
+					const routeDir = fileParts[0].match(/[A-Z]+(?![a-z])|[A-Z]?[a-z]+|\d+/g).join('-').toLowerCase();
 
+					await fs.remove(`jungle/build${pathNoFile}/${routeDir}/`);
+					console.log(`Removed route "${pathNoFile}/${fileName}"`);
+				}
+			} else {
+				if (isFileParameters(fileName)) await processFileForParameters(fileName, dirname, src, pathNoFile);
+				else await processFile(fileName, jungleConfig, dirname, src, pathNoFile);
+			}
 		}
 	}
+
+	liveReloadServer.refresh("/");
 }
 
 async function processDirectoryForParameters(jungleConfig, dirname, src, extension = '', paramGeneratedFiles = []) {
@@ -283,18 +310,20 @@ async function processFile(file, jungleConfig, dirname, src, extension) {
 
 			const mainJs = `import SFile from ${JSON.stringify(path.join(dirname, `${src}${extension}/${file}`))}; export default new SFile({target: document.body, hydrate: true});`;
 
-			fs.writeFileSync(`jungle/build${extension}/${filename}/main.js`, mainJs);
+			if (await fs.pathExists(`${src}${extension}/${file}`)) {
+				await fs.writeFile(`jungle/build${extension}/${filename}/main.js`, mainJs);
 
-			const clientBundle = await rollup.rollup(jungleConfig.clientInputOptions(filename, extension));
-			await clientBundle.write(jungleConfig.clientOutputOptions(filename, extension));
+				const clientBundle = await rollup.rollup(jungleConfig.clientInputOptions(filename, extension));
+				await clientBundle.write(jungleConfig.clientOutputOptions(filename, extension));
 
-			const ssrBundle = await rollup.rollup(jungleConfig.ssrInputOptions(filename, extension, src));
-			await ssrBundle.write(jungleConfig.ssrOutputOptions(filename, extension));
+				const ssrBundle = await rollup.rollup(jungleConfig.ssrInputOptions(filename, extension, src));
+				await ssrBundle.write(jungleConfig.ssrOutputOptions(filename, extension));
 
-			await fs.remove(`jungle/build${extension}/${filename}/main.js`);
-			await fs.remove(`jungle/build${extension}/${filename}/ssr.js`);
+				await fs.remove(`jungle/build${extension}/${filename}/main.js`);
+				await fs.remove(`jungle/build${extension}/${filename}/ssr.js`);
 
-			console.log(`Preprocessed route "${extension}/${file}"`);
+				console.log(`Preprocessed route "${extension}/${file}"`);
+			}
 		}
 	}
 }
