@@ -1,0 +1,26 @@
+{
+  "name": "junglejs",
+  "version": "2.0.0",
+  "description": "The Jamstack static site framework for Svelte",
+  "devDependencies": {
+    "lerna": "^3.22.1"
+  },
+  "keywords": [
+    "svelte",
+    "junglejs",
+    "jungle",
+    "static site generator",
+    "jamstack",
+    "website",
+    "blog"
+  ],
+  "author": "Conner Aldrich",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/junglejs/junglejs/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/junglejs/junglejs.git"
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "name": "@junglejs/example",
+  "version": "0.0.1",
+  "description": "example",
+  "main": "index.js",
+  "author": "Hendrik Roth",
+  "license": "MIT",
+  "dependencies": {
+    "@junglejs/core": "file:../core"
+  },
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^15.1.0",
+    "@rollup/plugin-node-resolve": "^9.0.0",
+    "rollup-plugin-svelte": "^6.0.1",
+    "rollup-plugin-svelte-ssr": "^1.0.3",
+    "rollup-plugin-terser": "^7.0.2"
+  }
+}
