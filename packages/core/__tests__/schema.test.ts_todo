@@ -1,0 +1,10 @@
+import schema from "../src/schema";
+
+/*
+describe("schema", () => {
+  test("should do something", async () => {
+    const s = schema([]);
+    expect(s).toBe("todo");
+  });
+});
+*/

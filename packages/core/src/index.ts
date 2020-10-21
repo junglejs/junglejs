@@ -3,6 +3,7 @@ export let graphqlPort = 3001;
 export let queryName = process.env.QUERY || "QUERY";
 export let resName = process.env.QUERYRES || "QUERYRES";
 
+import express from "express";
 import { graphqlServer } from "./graphql";
 import { appServer } from "./server";
 import { stop } from "./utils";

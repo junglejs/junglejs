@@ -155,7 +155,7 @@ export async function processFileForParameters({
       uri: `http://localhost:${graphqlPort}/graphql`,
       fetch: fetch,
     });
-    const data = Object.values(
+    const data: any = Object.values(
       (
         await client.query({
           query: gql`

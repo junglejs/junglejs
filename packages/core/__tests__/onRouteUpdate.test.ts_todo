@@ -1,0 +1,17 @@
+import onRouteUpdate from "../src/onRouteUpdate";
+
+/*
+describe("onRouteUpdate", () => {
+  test("should do something", async () => {
+    const oru = await onRouteUpdate({
+      ssgdir: "",
+      event: "",
+      path: "",
+      source: "",
+      config: {},
+      dirname: "",
+      liveReloadServer: false
+    });
+  });
+});
+*/

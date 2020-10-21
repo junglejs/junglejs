@@ -12,11 +12,11 @@ export default async function buildRoutes({
   ssgdir: string;
 }) {
   await fs.remove(ssgdir);
-  await fs.ensureDir(`${ssgdir}/build`);
-  await fs.ensureDir(`${ssgdir}/.cache`);
+  await fs.ensureDir(ssgdir + "/build");
+  await fs.ensureDir(ssgdir + "/.cache");
 
-  await fs.copy("src/components", `${ssgdir}/.cache/components`);
-  await fs.copy("static", `${ssgdir}/build`);
+  await fs.copy("src/components", ssgdir + "/.cache/components");
+  await fs.copy("static", ssgdir + "/build");
 
   await processDirectory({ config, dirname, source: "src/routes" });
   await processDirectoryForParameters({
@@ -28,7 +28,7 @@ export default async function buildRoutes({
   await processDirectory({
     config,
     dirname,
-    source: `${ssgdir}/.cache/routes`,
+    source: ssgdir + "/.cache/routes",
   });
 
   // callback..?

@@ -1,0 +1,16 @@
+import express from "express";
+import watchRoutes from "../src/watchRoutes";
+
+/*
+describe("watchRoutes", () => {
+  test("should do something", async () => {
+    const app = express();
+    const wr = watchRoutes({
+      ssgdir: "",
+      config: {},
+      app,
+      dirname: ""
+    });
+  });
+});
+*/

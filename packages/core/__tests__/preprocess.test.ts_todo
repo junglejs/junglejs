@@ -1,0 +1,13 @@
+import preprocess from "../src/preprocess";
+
+/*
+describe("preprocess", () => {
+  test("should do something", async () => {
+    const pp = preprocess({
+      queryName: "",
+      resName: "",
+      graphqlPort: 0
+    });
+  });
+});
+*/

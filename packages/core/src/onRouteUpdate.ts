@@ -19,15 +19,15 @@ export default async function onRouteUpdate({
   dirname: string;
   liveReloadServer?: any;
 }) {
-  if (event == "change" || event == "add" || event == "unlink") {
+  if (event === "change" || event === "add" || event === "unlink") {
     const splitPath = path.replace(source, "").split("/");
     const pathNoFile = splitPath.slice(0, splitPath.length - 1).join("/");
     const fileName = splitPath[splitPath.length - 1];
 
     if (isSvelteFile(fileName)) {
-      if (event == "unlink") {
+      if (event === "unlink") {
         const fileParts = fileName.split(".");
-        if (fileParts[0] == "Index") {
+        if (fileParts[0] === "Index") {
           console.log(
             `Route "${pathNoFile}/${fileName}" won't be removed till after rerunning the build process`
           );

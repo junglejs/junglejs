@@ -41,7 +41,7 @@ export function start({
   app: express.Application;
   port: number;
   liveReload?: any;
-  callback?: Function;
+  callback?: () => any;
 }) {
   app.use(express.json());
   app.use(express.urlencoded({ extended: false }));

@@ -13,7 +13,11 @@ export default async function preprocess({
 }) {
   return {
     script: async ({ content }) => {
-      let queryStart, queryEnd, resStart, resEnd;
+      let queryStart;
+      let queryEnd;
+      let resStart;
+      let resEnd;
+
       const tree = acorn.parse(content, {
         sourceType: "module",
         ecmaVersion: "latest",

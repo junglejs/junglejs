@@ -8,8 +8,8 @@ import { v1 } from "uuid";
 
 const renderer = new marked.Renderer();
 
-let fileextension = ".md";
-let records = [];
+const fileextension = ".md";
+export let records = [];
 
 export function findIndex(id: string) {
   return Object.keys(records).findIndex((x) => records[x]._id === id);
@@ -59,11 +59,14 @@ export function write({
   fileStr.push("---");
   fileStr.push(record._content);
 
+  const str = fileStr.join("\n");
   fs.writeFileSync(
     path.resolve(path.join(dirname, items, record._path + fileextension)),
-    fileStr.join("\n"),
+    str,
     "utf-8"
   );
+
+  return str;
 }
 
 export function read({
@@ -75,24 +78,34 @@ export function read({
   item;
   pluginname: string;
 }) {
-  const records = [];
+  const _records = [];
 
   fs.readdirSync(path.join(dirname, item)).map((fileName) => {
     const entry = fs.readFileSync(
       path.resolve(path.join(dirname, item), fileName),
       "utf-8"
     );
-    const { data, content } = grayMatter(entry);
-    const html = marked(content, { renderer });
+    const {data, content}= grayMatter(entry);
+    const match = content.match(/\n---\n(.*)\n---\n(.*)\n/ms);
+    const options: any = {};
+
+    match[1].split("\n").forEach(option => {
+      const o = option.match(/(.*): (.*)/s);
+      options[o[1]] = o[2];
+    });
+
+    const pureContent = match[2];
+    const html = marked(pureContent, { renderer });
 
     data._content = content;
     data._path = fileName.substring(0, fileName.length - fileextension.length);
     data._id = v1();
-    data._data_source = pluginname;
-    records.push({ html, ...data });
+    data._data_source = "source-markdown";
+
+    _records.push({ html, ...data, ...options });
   });
 
-  return records;
+  return _records;
 }
 
 export function init({

@@ -3,7 +3,7 @@ import path from "path";
 import express from "express";
 import chokidar from "chokidar";
 
-async function watchRoutes({
+export default async function watchRoutes({
   ssgdir = "junglejs",
   app,
   config,
@@ -15,8 +15,8 @@ async function watchRoutes({
   dirname: string;
 }) {
   await fs.remove(ssgdir);
-  await fs.ensureDir(`${ssgdir}/build`);
-  await fs.ensureDir(`${ssgdir}/.cache`);
+  await fs.ensureDir(ssgdir + "/build");
+  await fs.ensureDir(ssgdir + "/.cache");
 
   app.use(
     require("connect-livereload")({
@@ -47,20 +47,22 @@ async function watchRoutes({
   await chokidar
     .watch("src/components")
     .on("all", (e, p) =>
-      copyStaticFiles(e, p, "src/components", `${ssgdir}/.cache/components`)
+      copyStaticFiles(e, p, "src/components", ssgdir + "/.cache/components")
     );
+
   await chokidar
     .watch("static")
-    .on("all", (e, p) => copyStaticFiles(e, p, "static", `${ssgdir}/build`));
+    .on("all", (e, p) => copyStaticFiles(e, p, "static", ssgdir + "/build"));
 
   await chokidar
     .watch("src/routes")
     .on("all", (e, p) =>
       onRouteUpdate(e, p, "src/routes", config, dirname)
     );
+
   await chokidar
     .watch(`${ssgdir}/.cache/routes`)
     .on("all", (e, p) =>
-      onRouteUpdate(e, p, `${ssgdir}/.cache/routes`, config, dirname)
+      onRouteUpdate(e, p, ssgdir + "/.cache/routes", config, dirname)
     );
 }

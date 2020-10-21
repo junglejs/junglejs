@@ -12,7 +12,7 @@ export async function appServer({
   liveReload
 }: {
   app: express.Application;
-  callback?: Function;
+  callback?: () => any;
   port?: number;
   liveReload?: any;
 }) {

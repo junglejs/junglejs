@@ -1,6 +1,6 @@
 import http from "http";
 
-export async function asyncForEach(array, callback) {
+export async function asyncForEach(array: any[], callback) {
   for (let index = 0; index < array.length; index++) {
     await callback(array[index], index, array);
   }
@@ -8,12 +8,16 @@ export async function asyncForEach(array, callback) {
 
 export function isSvelteFile(file: string) {
   const fileParts = file.split(".");
-  return fileParts[fileParts.length - 1] === "svelte" && fileParts.length == 2;
+  return fileParts[fileParts.length - 1] === "svelte" &&
+    fileParts.length === 2;
 }
 
 export function isFileParameters(file: string) {
   const fileParts = file.split(".");
-  return fileParts[0][0] == "[" && fileParts[0][fileParts[0].length - 1] == "]";
+  return fileParts[0].match(/\[/g).length < 2 &&
+    fileParts[0].match(/\]/g).length < 2 &&
+    fileParts[0][0] === "[" &&
+    fileParts[0][fileParts[0].length - 1] === "]";
 }
 
 export function listen({
@@ -57,7 +61,7 @@ export function stop({
 }: {
   server: http.Server;
   name: string;
-  callback?: Function;
+  callback?: () => any;
 }) {
   server.close();
   server.on("close", () => {
