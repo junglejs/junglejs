@@ -2,7 +2,14 @@
   "name": "@junglejs/source-markdown",
   "version": "0.0.1",
   "description": "",
-  "main": "index.js",
+  "main": "lib/index.js",
+  "directories": {
+    "lib": "lib",
+    "test": "__test__"
+  },
+  "files": [
+    "lib"
+  ],
   "author": "Hendrik Roth",
   "license": "MIT",
   "dependencies": {
@@ -14,5 +21,12 @@
     "lodash.find": "^4.6.0",
     "marked": "^1.2.0",
     "uuid": "^8.3.0"
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "tsc": "tsc"
+  },
+  "devDependencies": {
+    "typescript": "^4.0.3"
   }
 }

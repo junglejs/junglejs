@@ -1,5 +1,6 @@
-import acorn from 'acorn';
-import walk from 'acorn-walk';
+import {Parser} from 'acorn';
+import * as walk from 'acorn-walk';
+import fetch from "node-fetch";
 import ApolloClient, { gql } from 'apollo-boost';
 
 export default async function preprocess({
@@ -18,7 +19,7 @@ export default async function preprocess({
       let resStart;
       let resEnd;
 
-      const tree = acorn.parse(content, {
+      const tree = Parser.parse(content, {
         sourceType: "module",
         ecmaVersion: "latest",
       });

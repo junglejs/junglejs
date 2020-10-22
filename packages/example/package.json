@@ -3,8 +3,11 @@
   "version": "0.0.1",
   "description": "example",
   "main": "index.js",
-  "author": "Hendrik Roth",
-  "license": "MIT",
+  "scripts": {
+    "build": "rollup -c",
+    "dev": "rollup -c -w",
+    "start": "node index.js"
+  },
   "dependencies": {
     "@junglejs/core": "file:../core"
   },

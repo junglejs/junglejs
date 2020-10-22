@@ -3,7 +3,9 @@
   "version": "2.0.0",
   "description": "The Jamstack static site framework for Svelte",
   "devDependencies": {
+    "@graphql-tools/mock": "^6.2.4",
     "@types/jest": "^26.0.15",
+    "graphql": "^15.3.0",
     "jest": "^26.6.0",
     "lerna": "^3.22.1",
     "mock-fs": "^4.13.0",
@@ -32,12 +34,18 @@
   "scripts": {
     "lint": "run-p -c lint:*",
     "lint:ts": "tslint 'packages/**/*.ts'",
-    "test": "jest"
+    "test": "jest",
+    "publish": "lerna run tsc && lerna publish"
   },
   "workspaces": {
     "packages": [
       "packages/core/*"
     ]
   },
-  "private": true
+  "private": true,
+  "dependencies": {
+    "@graphql-tools/schema": "^6.2.4",
+    "exit": "^0.1.2",
+    "terminal-link": "^2.1.1"
+  }
 }

@@ -9,6 +9,8 @@ import { appServer } from "./server";
 import { stop } from "./utils";
 
 process.on("SIGTERM", () => {
+  /* todo
   stop({ server: appServer, name: "app" });
   stop({ server: graphqlServer, name: "graphql" });
+  */
 });

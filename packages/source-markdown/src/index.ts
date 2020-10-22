@@ -11,6 +11,14 @@ const renderer = new marked.Renderer();
 const fileextension = ".md";
 export let records = [];
 
+export function pascalCase(str: string) {
+  return (" " + str)
+    .toLowerCase()
+    .replace(/[^a-zA-Z0-9]+(.)/g, (_, chr) => {
+      return chr.toUpperCase();
+    });
+}
+
 export function findIndex(id: string) {
   return Object.keys(records).findIndex((x) => records[x]._id === id);
 }
@@ -85,11 +93,11 @@ export function read({
       path.resolve(path.join(dirname, item), fileName),
       "utf-8"
     );
-    const {data, content}= grayMatter(entry);
+    const { data, content } = grayMatter(entry);
     const match = content.match(/\n---\n(.*)\n---\n(.*)\n/ms);
     const options: any = {};
 
-    match[1].split("\n").forEach(option => {
+    match[1].split("\n").forEach((option) => {
       const o = option.match(/(.*): (.*)/s);
       options[o[1]] = o[2];
     });
@@ -124,13 +132,14 @@ export function init({
   schemaComposer: any;
 }) {
   const queries = {};
+  const _typename = pascalCase(typename);
 
   records = read({
     dirname: folder,
     item: typename,
     pluginname: plugin.name,
   });
-  composeWithJson(typename, records[0], { schemaComposer });
+  composeWithJson(_typename, records[0], { schemaComposer });
 
   queries[typename] = {
     args: queryArgs,
@@ -138,12 +147,12 @@ export function init({
   };
 
   queries[typename + "s"] = {
-    type: `[${typename}]`,
+    type: `[${_typename}]`,
     resolve: (_) => records,
   };
 
-  queries["create" + typename] = {
-    type: typename,
+  queries["create" + _typename] = {
+    type: _typename,
     args: createArgs,
     resolve: (_, args) => {
       const record = args;
@@ -161,8 +170,8 @@ export function init({
   };
 
   const setUpdateArgs = { ...updateArgs, ...{ _id: "String!" } };
-  queries["update" + typename] = {
-    type: typename,
+  queries["update" + _typename] = {
+    type: _typename,
     args: setUpdateArgs,
     resolve: (_, args) => {
       const origin = find(records, { _id: args._id });
@@ -172,7 +181,7 @@ export function init({
     },
   };
 
-  queries["remove" + typename] = {
+  queries["remove" + _typename] = {
     type: "Boolean!",
     args: { _id: "String!" },
     resolve: (_, args) => {

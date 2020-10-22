@@ -2,6 +2,8 @@ import fs from "fs-extra";
 import path from "path";
 import express from "express";
 import chokidar from "chokidar";
+import onRouteUpdate from "./onRouteUpdate";
+import {copyStaticFiles} from "./utils";
 
 export default async function watchRoutes({
   ssgdir = "junglejs",
@@ -56,13 +58,13 @@ export default async function watchRoutes({
 
   await chokidar
     .watch("src/routes")
-    .on("all", (e, p) =>
-      onRouteUpdate(e, p, "src/routes", config, dirname)
+    .on("all", (event, p) =>
+      onRouteUpdate({event, path: p, source: "src/routes", config, dirname})
     );
 
   await chokidar
     .watch(`${ssgdir}/.cache/routes`)
-    .on("all", (e, p) =>
-      onRouteUpdate(e, p, ssgdir + "/.cache/routes", config, dirname)
+    .on("all", (event, p) =>
+      onRouteUpdate({event, path: p, source: ssgdir + "/.cache/routes", config, dirname})
     );
 }

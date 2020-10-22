@@ -1,4 +1,5 @@
 import plugin, {write, read, init, records} from "../src/index";
+import { SchemaComposer } from "graphql-compose";
 import mock from "mock-fs";
 
 describe("write", () => {
@@ -71,23 +72,83 @@ Content
   });
 });
 
-/*
 describe("init", () => {
-  it("should...", () => {
+  it("should generate correct graphql queries", () => {
+    mock({
+      "/test": {
+        "blog": {
+          "post-1.md": `
+---
+title: Title for Post 1
+slug: /title-1
+description: Description 1
+---
+Content 1
+`,
+          "post-2.md": `
+---
+title: Title for Post 2
+slug: /title-2
+description: Description 2
+---
+Content 2
+`,
+        }
+      }
+    });
+
+    const schemaComposer = new SchemaComposer();
+    const fn = expect.any(Function);
+
     const i = init({
-      folder: "",
-      typename: "",
+      folder: "/test",
+      typename: "blog",
       queryArgs: {},
       createArgs: {},
       updateArgs: {},
-      schemaComposer: {}
+      schemaComposer
     });
+
+    const expected = {
+      graphql: {
+        queries: {
+          blog: {
+            args: {},
+            resolve: fn
+          },
+          blogs: {
+            type: "[Blog]",
+            resolve: fn
+          },
+          createBlog: {
+            args: {},
+            type: "Blog",
+            resolve: fn
+          },
+          removeBlog: {
+            args: {
+              "_id": "String!"
+            },
+            type: "Boolean!",
+            resolve: fn
+          },
+          updateBlog: {
+            args: {
+              "_id": "String!"
+            },
+            type: "Blog",
+            resolve: fn
+          }
+        }
+      }
+    };
+
+    expect(i).toEqual(expected);
   });
 });
-*/
 
 describe("plugin", () => {
-  it("should give the following meta information", () => {
+  it("should give the following meta information", (done) => {
     const expected = {
       type: "source",
       name: "source-markdown",
@@ -95,6 +156,7 @@ describe("plugin", () => {
       init
     };
 
-    expect(plugin).toEqual(expected);
+    expect(plugin).toMatchObject(expected);
+    done();
   });
 });

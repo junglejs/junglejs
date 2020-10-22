@@ -1,13 +1,46 @@
 import preprocess from "../src/preprocess";
+import { graphqlServer } from "../src/graphql";
+import { makeExecutableSchema } from "@graphql-tools/schema";
+import { addMocksToSchema } from "@graphql-tools/mock";
 
+// TODO!
 /*
 describe("preprocess", () => {
-  test("should do something", async () => {
-    const pp = preprocess({
-      queryName: "",
-      resName: "",
-      graphqlPort: 0
+  it("should do something", async () => {
+    const graphqlPort = 3009;
+    const schemaString = `
+      type Post {
+        _id: ID!
+        title: String!
+        content: String!
+      }
+    `;
+
+    const content = `
+          export let title = "Title";
+    `;
+
+    const schema = makeExecutableSchema({
+       typeDefs: schemaString
     });
+
+    const gs = await graphqlServer({
+      sources: [],
+      port: graphqlPort,
+      schema: addMocksToSchema({ schema }),
+      graphiql: false
+    });
+
+    const pp = await preprocess({
+      queryName: "Post",
+      resName: "post",
+      graphqlPort
+    });
+
+    const ppScript = await pp.script({ content });
+
+    const expected = { code: "" };
+    expect(ppScript).toEqual(expected);
   });
 });
 */

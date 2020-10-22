@@ -17,18 +17,21 @@ export async function graphqlServer({
   schema: any;
   graphiql: boolean;
 }) {
-  const app = express();
-  app.use(express.json());
-  app.use(express.urlencoded({ extended: false }));
-  app.use(cookieParser());
-  app.use(cors());
+  return new Promise(resolve => {
+    const app = express();
+    app.use(express.json());
+    app.use(express.urlencoded({ extended: false }));
+    app.use(cookieParser());
+    app.use(cors());
 
-  app.use("/graphql", graphqlHTTP({ schema, graphiql }));
-  const server = http.createServer(app);
-  server.listen(port);
-  server.on("error", (err) => error(err, port));
-  server.on("listening", () => {
-    listen({ server, name: "GraphQL" });
+    app.use("/graphql", graphqlHTTP({ schema, graphiql }));
+    const server = http.createServer(app);
+    server.listen(port);
+    server.on("error", (err) => error(err, port));
+    server.on("listening", () => {
+      listen({ server, name: "GraphQL" });
+      resolve();
+    });
   });
 }
 

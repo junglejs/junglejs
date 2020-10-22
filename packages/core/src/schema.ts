@@ -5,8 +5,9 @@ export default function schema(sources: any[]) {
 
   sources.forEach(async source => {
     try {
-      const ImportedDataSource = await import(source.plugin);
-      new ImportedDataSource(source, schemaComposer);
+      const ids = await import(source.name);
+      console.log("Loaded source: " + source.name);
+      ids.init(__dirname, source.options);
     }
     catch(err) {
       console.error(err);

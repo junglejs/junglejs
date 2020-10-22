@@ -1,6 +1,7 @@
 import fs from "fs-extra";
 import path from "path";
 import rollup from "rollup";
+import fetch from "node-fetch";
 import ApolloClient, { gql } from "apollo-boost";
 import { asyncForEach, isSvelteFile, isFileParameters } from "./utils";
 
@@ -77,12 +78,12 @@ export async function processFile({
   const fileParts = file.split(".");
 
   if (/\s|_|-/.test(fileParts[0])) {
-    console.log(`File "${extension}/${file}" doesn't follow UpperCamelCase`);
+    console.log(`File "${extension}/${file}" doesn't follow UpperCamelCase/PascalCase`);
   } else {
     if (isSvelteFile(file) && !isFileParameters(file)) {
-      //If Index, set to be root of the built folder, else join a multiword into hyphen seperated lowercase words
+      // If Index, set to be root of the built folder, else join a multiword into hyphen seperated lowercase words
       const filename =
-        fileParts[0] != "Index"
+        fileParts[0] !== "Index"
           ? fileParts[0]
               .match(/[A-Z]+(?![a-z])|[A-Z]?[a-z]+|\d+/g)
               .join("-")
@@ -153,7 +154,7 @@ export async function processFileForParameters({
 
     const client = new ApolloClient({
       uri: `http://localhost:${graphqlPort}/graphql`,
-      fetch: fetch,
+      fetch,
     });
     const data: any = Object.values(
       (

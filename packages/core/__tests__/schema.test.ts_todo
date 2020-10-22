@@ -1,9 +1,24 @@
 import schema from "../src/schema";
-
+import path from "path";
 /*
 describe("schema", () => {
   test("should do something", async () => {
-    const s = schema([]);
+    const sources = [
+      {
+        // todo, how to import "@junglejs/source-markdown" in this test?
+        name: path.join("../../source-markdown/src"),
+        options: {
+          typename: "Post",
+          folder: "static/posts",
+          queryArgs: { slug: "String!" },
+          updateArgs: {},
+          createArgs: {}
+        }
+      }
+    ];
+
+    const s = schema(sources);
+
     expect(s).toBe("todo");
   });
 });
