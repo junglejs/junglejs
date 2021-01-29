@@ -145,17 +145,25 @@ async function processDirectoryForParameters(jungleConfig, dirname, src, extensi
 				const data = Object.values((await client.query({ query: gql`${queryParamOpts}` })).data)[0];
 
 				const parameterOptions = {};
-				parameterOptions[Object.keys(data[0])[0]] = data.map(m => Object.values(m)[0]);
+                const keys = Object.keys(data[0]).filter(k => k !== "__typename");
 
-				fileParameters.forEach(fileParameter => {
-					parameterOptions[fileParameter].forEach(paramOption => {
-						const pFilename = paramOption.split("-").map(s => s.charAt(0).toUpperCase() + s.slice(1)).join("");
-						const processedFile = rawSvelteFile.replace('${'+`QUERYPARAMS['${fileParameter}']`+'}', paramOption).replace('${'+`QUERYPARAMS["${fileParameter}"]`+'}', paramOption);
+                keys.forEach(key => {
+                    parameterOptions[key] = data.map(m => m[key]);
+                });
 
-						fs.writeFileSync(path.join(dirname, `${src}${extension}/${pFilename}.svelte`), processedFile);
-						paramGeneratedFiles.push(`${src}${extension}/${pFilename}.svelte`);
-					});
-				});
+                data.forEach(d => {
+                    const pFilename = fileParameters.map(k => d[k].split("-").map(s => s.charAt(0).toUpperCase() + s.slice(1))).join("");
+                    let processedFile = rawSvelteFile;
+
+                    keys.forEach(k => {
+                        processedFile = processedFile
+                            .replace('${' + `QUERYPARAMS['${k}']` + '}', d[k])
+                            .replace('${' + `QUERYPARAMS["${k}"]` + '}', d[k]);
+                    });
+
+                    fs.writeFileSync(path.join(dirname, `${src}${extension}/${pFilename}.svelte`), processedFile);
+                    paramGeneratedFiles.push(`${src}${extension}/${pFilename}.svelte`);
+                });
 			}
 		}
 	});
