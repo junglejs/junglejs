@@ -289,7 +289,8 @@ async function processFileForParameters(file, dirname, src, extension) {
         });
 
         data.forEach(d => {
-            const pFilename = fileParameters.map(k => d[k].split("-").map(s => s.charAt(0).toUpperCase() + s.slice(1))).join("");
+            const pFilename = fileParameters.map(k => d[k].split("-").map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(""));
+            console.log("PFILENAME",pFilename);
             let processedFile = rawSvelteFile;
 
             keys.forEach(k => {
