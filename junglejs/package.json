@@ -26,9 +26,11 @@
     },
     "homepage": "https://github.com/junglejs/junglejs#readme",
     "dependencies": {
+        "@habx/apollo-multi-endpoint-link": "^2.4.0",
         "acorn": "^7.2.0",
         "acorn-walk": "^7.1.1",
         "apollo-boost": "^0.4.9",
+        "apollo-link-http": "^1.5.17",
         "chokidar": "^3.4.2",
         "connect-livereload": "^0.6.1",
         "cookie-parser": "^1.4.5",

@@ -1,18 +1,19 @@
 <script>
-	const QUERY = `
-		query @api(name: "default") {
-			posts {
-				title
-				slug
-			}
-		}
-	`;
-	const QUERYRES = {};
+    const QUERY = `
+        query @api(name: "spacex") {
+            launches(limit: 2) {
+                id
+                mission_name
+            }
+        }
+    `;
+
+    const QUERYRES = {};
 
 	import Nav from "../../components/Nav.svelte";
 </script>
 
-<Nav page="/blog/"/>
+<Nav page="/launches/"/>
 
 <style>
 	main {
@@ -42,15 +43,14 @@
 </style>
 
 <svelte:head>
-	<title>blog</title>
+	<title>launches</title>
 </svelte:head>
 
 <main>
-    <h1>recent posts</h1>
-	<h3><a href="/blog/about-blog/">About</a></h3>
+    <h1>recent Spacex launches</h1>
     <ul>
-        {#each QUERYRES.posts as post}
-            <li><a href='/blog/{post.slug}/'>{post.title}</a></li>
+        {#each QUERYRES.launches as launch}
+            <li><a href="./{launch.id}">{launch.mission_name}</a></li>
         {/each}
     </ul>
 </main>

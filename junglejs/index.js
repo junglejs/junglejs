@@ -8,7 +8,7 @@ const marked = require('marked');
 const cors = require('cors');
 const graphqlRouter = require('express-graphql');
 const cookieParser = require('cookie-parser');
-const logger = require('morgan');
+//const logger = require('morgan');
 const http = require('http');
 
 const { SchemaComposer } = require('graphql-compose');
@@ -43,6 +43,18 @@ const colorLog = (color, message) => {
 	}
 }
 
+function graphqlError(err) {
+    if (err.graphQLErrors && err.graphQLErrors.length > 0) {
+        console.log(JSON.stringify(err.graphQLErrors, null, 4));
+    }
+    else if (err.networkError && err.networkError.result) {
+        console.log(JSON.stringify(err.networkError.result.errors, null, 4));
+    }
+    else {
+        console.log(JSON.stringify(err, null, 4));
+    }
+}
+
 const jungleGraphql = (jungleConfig, dirname) => {
 	const app = express();
 
@@ -52,7 +64,9 @@ const jungleGraphql = (jungleConfig, dirname) => {
 	app.use(cookieParser());
 	app.use(cors());
 
-	app.use('/graphql', graphqlRouter({ schema: generateSchema(jungleConfig.dataSources, dirname), graphiql: false }));
+    if (jungleConfig.dataSources && jungleConfig.dataSources.length > 0) {
+        app.use('/graphql', graphqlRouter({ schema: generateSchema(jungleConfig.dataSources, dirname), graphiql: process.env.NODE_ENV !== 'production' }));
+    }
 
 	return app;
 }
@@ -60,6 +74,7 @@ const jungleGraphql = (jungleConfig, dirname) => {
 let graphqlServer;
 let appServer;
 let liveReloadServer;
+let jungleClient;
 
 const liveReload = require("livereload");
 const chokidar = require('chokidar');
@@ -69,7 +84,11 @@ const walk = require("acorn-walk");
 
 const gql = require('graphql-tag');
 const fetch = require("node-fetch");
-const ApolloClient = require('apollo-boost').default;
+const ApolloClient = require('@apollo/client/core').ApolloClient;
+const ApolloLink = require('@apollo/client/core').ApolloLink;
+const InMemoryCache = require('@apollo/client/core').InMemoryCache;
+const MultiAPILink = require('@habx/apollo-multi-endpoint-link').MultiAPILink;
+const createHttpLink = require('apollo-link-http').createHttpLink;
 
 const port = process.env.GQLPORT || '3001';
 
@@ -78,44 +97,74 @@ process.on('SIGTERM', () => {
 	stopAppServer();
 })
 
+function gateways(config = {}) {
+    const endpoints = {...{ default: `http://localhost:${port}/graphql` }, ...config.gateways};
+    const getContext = config.gatewayContext || function() {};
+    const links = new MultiAPILink({
+        endpoints,
+        getContext,
+        createHttpLink: () => createHttpLink({fetch})
+    });
+
+    const client = new ApolloClient({
+        cache: new InMemoryCache(),
+        link: ApolloLink.from([links])
+    });
+
+    jungleClient = async (options) => {
+        const result = await client.query(options);
+
+        if (config.middlewareContext) {
+            // TODO !!
+            return await config.middlewareContext(result);
+        }
+
+        return result;
+    };
+
+    return jungleClient;
+}
+
 module.exports = {
-	junglePreprocess: {
-		script: async ({ content, filename }) => {
-			const queryName = "QUERY";
-			const resVarName = "QUERYRES";
+	junglePreprocess: (config) => {
+        gateways(config);
 
-			const tree = acorn.parse(content, { sourceType: "module" });
-			let resVarStart, resVarEnd, queryVarStart, queryVarEnd;
+        return {
+            script: async ({ content, filename }) => {
+                const queryName = "QUERY";
+                const resVarName = "QUERYRES";
 
-			walk.simple(tree, {
-				VariableDeclaration(node) {
-					node.declarations.forEach((declaration) => {
-						if (declaration.id.name === queryName) {
-							queryVarStart = declaration.init.start + 1;
-							queryVarEnd = declaration.init.end - 1;
-						} else if (declaration.id.name === resVarName) {
-							resVarStart = declaration.start;
-							resVarEnd = declaration.end;
-						}
-					});
-				},
-			});
+                const tree = acorn.parse(content, { sourceType: "module" });
+                let resVarStart, resVarEnd, queryVarStart, queryVarEnd;
 
-			if (!resVarStart || !queryVarStart) return { code: content };
+                walk.simple(tree, {
+                    VariableDeclaration(node) {
+                        node.declarations.forEach((declaration) => {
+                            if (declaration.id.name === queryName) {
+                                queryVarStart = declaration.init.start + 1;
+                                queryVarEnd = declaration.init.end - 1;
+                            } else if (declaration.id.name === resVarName) {
+                                resVarStart = declaration.start;
+                                resVarEnd = declaration.end;
+                            }
+                        });
+                    },
+                });
 
-			const query = content.slice(queryVarStart, queryVarEnd);
+                if (!resVarStart || !queryVarStart) return { code: content };
 
-			const client = new ApolloClient({
-				uri: `http://localhost:${port}/graphql`,
-				fetch: fetch,
-			});
+                const query = content.slice(queryVarStart, queryVarEnd);
 
-			const data = JSON.stringify((await client.query({ query: gql`${query}` })).data);
-
-			const finalCode = content.slice(0, resVarStart) + resVarName + " = " + data + content.slice(resVarEnd, content.length);
-
-			return { code: finalCode };
-		},
+                try {
+                    const data = JSON.stringify((await jungleClient({ query: gql`${query}` })).data);
+                    const finalCode = content.slice(0, resVarStart) + resVarName + " = " + data + content.slice(resVarEnd, content.length);
+                    return { code: finalCode };
+                }
+                catch (err) {
+                    graphqlError(err);
+                }
+            },
+        }
 	},
 	startGraphqlServer: (jungleConfig, dirname, callback) => {
 		const port = normalizePort(process.env.GQLPORT || '3001');
@@ -278,29 +327,39 @@ async function processFileForParameters(file, dirname, src, extension) {
 		const rawSvelteFile = fs.readFileSync(path.join(dirname, `${src}${extension}/${file}`), "utf8");
 		const queryParamOpts = RegExp(/const QUERYPARAMOPTS = `([^]*?)`;/gm).exec(rawSvelteFile)[1];
 
-		const client = new ApolloClient({ uri: `http://localhost:${port}/graphql`, fetch: fetch });
-		const data = Object.values((await client.query({ query: gql`${queryParamOpts}` })).data)[0];
+        try {
+            const data = Object.values((await jungleClient({ query: gql`${queryParamOpts}` })).data)[0];
 
-		const parameterOptions = {};
-        const keys = Object.keys(data[0]).filter(k => k !== "_typename");
+            const parameterOptions = {};
+            const keys = Object.keys(data[0]).filter(k => k !== "_typename");
 
-        keys.forEach(key => {
-            parameterOptions[key] = data.map(m => m[key])
-        });
-
-        data.forEach(d => {
-            const pFilename = fileParameters.map(k => d[k].split("-").map(s => s.charAt(0).toUpperCase() + s.slice(1)).join("")).join("");
-            let processedFile = rawSvelteFile;
-
-            keys.forEach(k => {
-                processedFile = processedFile
-                    .replace('${' + `QUERYPARAMS['${k}']` + '}', d[k])
-                    .replace('${' + `QUERYPARAMS["${k}"]` + '}', d[k]);
+            keys.forEach(key => {
+                parameterOptions[key] = data.map(m => m[key])
             });
 
-            fs.ensureDirSync(path.join(dirname, `jungle/.cache/routes${extension}`));
-            fs.writeFileSync(path.join(dirname, `jungle/.cache/routes${extension}/${pFilename}.svelte`), processedFile);
-        });
+            data.forEach(d => {
+                const pFilename = fileParameters
+                    .map(k => 
+                        String(d[k])
+                            .split("-")
+                            .map(s => s.replace(/[^a-z0-9]/gmi, "").replace(/\s+/g, ""))
+                            .map(s => s.charAt(0).toUpperCase() + s.slice(1))
+                    .join("")).join("");
+                let processedFile = rawSvelteFile;
+
+                keys.forEach(k => {
+                    processedFile = processedFile
+                        .replace('${' + `QUERYPARAMS['${k}']` + '}', d[k])
+                        .replace('${' + `QUERYPARAMS["${k}"]` + '}', d[k]);
+                });
+
+                fs.ensureDirSync(path.join(dirname, `jungle/.cache/routes${extension}`));
+                fs.writeFileSync(path.join(dirname, `jungle/.cache/routes${extension}/${pFilename}.svelte`), processedFile);
+            });
+        }
+        catch(err) {
+            graphqlError(err);
+        }
 	}
 }
 
@@ -393,7 +452,7 @@ function onListeningGraphQL(server) {
 }
 
 
-function generateSchema(dataSources, dirname) {
+function generateSchema(dataSources = [], dirname) {
 	const schemaComposer = new SchemaComposer();
 
 	dataSources.forEach(source => {

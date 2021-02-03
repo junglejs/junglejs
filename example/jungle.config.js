@@ -11,6 +11,24 @@ const production = !!process.env.PRODUCTION;
 const fs = require('fs');
 const templateHtml = fs.readFileSync('src/template.html', { encoding: 'utf8', flag: 'r' });
 
+// with jungleGateway you can access external GraphQL sources directly
+const jungleGateway = junglePreprocess({
+    gateways: {
+        spacex: "https://api.spacex.land/graphql"
+    },
+    gatewayContext: ctx => {
+        // Defining custom headers
+        // for Authorization for example
+        // if (ctx === "spacex") return { "Authorization": "Bearer..." };
+        return {};
+    },
+    middlewareContext: async (ctx) => {
+        // Defining custom middlewares for
+        // gateway results, defined by __typename 
+        return ctx;
+    }
+});
+
 module.exports = {
     clientInputOptions: (filename, extension) => {
         return {
@@ -20,7 +38,7 @@ module.exports = {
                     dev: !production,
                     hydratable: true,
                     preprocess: [
-                        junglePreprocess,
+                        jungleGateway,
                     ],
                 }),
 
@@ -51,7 +69,7 @@ module.exports = {
                 svelte({
                     dev: !production,
                     preprocess: [
-                        junglePreprocess,
+                        jungleGateway,
                     ],
                     generate: "ssr",
                     hydratable: true,
