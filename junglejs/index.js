@@ -89,6 +89,7 @@ const ApolloLink = require('@apollo/client/core').ApolloLink;
 const InMemoryCache = require('@apollo/client/core').InMemoryCache;
 const MultiAPILink = require('@habx/apollo-multi-endpoint-link').MultiAPILink;
 const createHttpLink = require('apollo-link-http').createHttpLink;
+const HttpLink = require('apollo-link-http').HttpLink;
 
 const port = process.env.GQLPORT || '3001';
 
@@ -98,17 +99,17 @@ process.on('SIGTERM', () => {
 })
 
 function gateways(config = {}) {
-    const endpoints = {...{ default: `http://localhost:${port}/graphql` }, ...config.gateways};
-    const getContext = config.gatewayContext || function() {};
     const links = new MultiAPILink({
-        endpoints,
-        getContext,
+        endpoints: config.gateways || {},
+        getContext: config.gatewayContext || function() {},
         createHttpLink: () => createHttpLink({fetch})
     });
 
+    const defaultLink = new HttpLink({fetch, uri: `http://localhost:${port}/graphql`});
+
     const client = new ApolloClient({
         cache: new InMemoryCache(),
-        link: ApolloLink.from([links])
+        link: ApolloLink.concat(links, defaultLink)
     });
 
     jungleClient = async (options) => {

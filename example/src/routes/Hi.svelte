@@ -1,6 +1,6 @@
 <script>
 	const QUERY = `
-		query @api(name: "default") {
+		query {
 			posts {
 				title
 				slug

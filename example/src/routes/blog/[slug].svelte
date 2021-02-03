@@ -1,6 +1,6 @@
 <script>
   const QUERY = `
-		query @api(name: "default") {
+		query {
 			post(slug: "${QUERYPARAMS["slug"]}") {
 				title
 				slug
