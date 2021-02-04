@@ -115,10 +115,23 @@ function gateways(config = {}) {
     jungleClient = async (options) => {
         const result = await client.query(options);
 
-        if (config.middlewareContext) {
-            // TODO !!
-            return await config.middlewareContext(result);
-        }
+    	if (config.middlewareContext) {
+	    let newResult = { ...result };
+
+	    let handlers = [];
+
+	    find(newResult, (data) => {
+	      const handler = config.middlewareContext[/* TODO: use options.query to check for the api directive name, else use default */][data.__typename];
+
+	      if (handler) {
+		handlers.push(handler(data));
+	      }
+	    });
+
+	    await Promise.all(handlers);
+
+	    return newResult;
+  	}
 
         return result;
     };
