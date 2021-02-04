@@ -10,10 +10,10 @@ const graphqlRouter = require('express-graphql');
 const cookieParser = require('cookie-parser');
 //const logger = require('morgan');
 const http = require('http');
+const find = require('lodash.find');
 
 const { SchemaComposer } = require('graphql-compose');
 const { composeWithJson } = require('graphql-compose-json');
-const find = require('lodash.find');;
 
 const colorLog = (color, message) => {
 	const Reset = "\x1b[0m";
@@ -98,6 +98,22 @@ process.on('SIGTERM', () => {
 	stopAppServer();
 })
 
+function match(x, fn) {
+  if (Array.isArray(x)) {
+    for (let y of x) {
+      match(y, fn);
+    }
+  } else if (typeof x === "object") {
+    if (x.hasOwnProperty("__typename")) {
+      fn(x);
+    }
+
+    for (let y of Object.values(x)) {
+      match(y, fn);
+    }
+  }
+}
+
 function gateways(config = {}) {
     const links = new MultiAPILink({
         endpoints: config.gateways || {},
@@ -116,22 +132,27 @@ function gateways(config = {}) {
         const result = await client.query(options);
 
     	if (config.middlewareContext) {
-	    let newResult = { ...result };
+            let gateway;
+            let newResult = { ...result };
+            let handlers = [];
 
-	    let handlers = [];
+            try {
+                gateway = options.query.definitions[0].directives[0].arguments[0].value.value;
+            } catch {
+                gateway = "default";
+            }
 
-	    find(newResult, (data) => {
-	      const handler = config.middlewareContext[/* TODO: use options.query to check for the api directive name, else use default */][data.__typename];
+            match(newResult.data, async (data) => {
+                const handler = config.middlewareContext[gateway][data.__typename];
 
-	      if (handler) {
-		handlers.push(handler(data));
-	      }
-	    });
+                if (handler)
+                    handlers.push(handler(data));
+            });
 
-	    await Promise.all(handlers);
+            await Promise.all(handlers);
 
-	    return newResult;
-  	}
+            return newResult;
+        }
 
         return result;
     };

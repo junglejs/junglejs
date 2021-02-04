@@ -22,10 +22,14 @@ const jungleGateway = junglePreprocess({
         // if (ctx === "spacex") return { "Authorization": "Bearer..." };
         return {};
     },
-    middlewareContext: async (ctx) => {
-        // Defining custom middlewares for
-        // gateway results, defined by __typename 
-        return ctx;
+    middlewareContext: {
+        default: {},
+        spacex: {
+            Launch: async (data) => {
+                data.edited = true;
+                data.launch_year += "!!!";
+            }
+        }
     }
 });
 
