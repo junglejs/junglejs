@@ -23,11 +23,9 @@ const jungleGateway = junglePreprocess({
         return {};
     },
     middlewareContext: {
-        default: {},
         spacex: {
             Launch: async (data) => {
-                data.edited = true;
-                data.launch_year += "!!!";
+                if (data.launch_year) data.launch_year += " [EDITED by middleware]"; 
             }
         }
     }

@@ -1,3 +1,5 @@
+'use strict';
+
 const express = require('express');
 const debug = require('debug')('express:server');
 const path = require('path');
@@ -133,7 +135,7 @@ function gateways(config = {}) {
 
     	if (config.middlewareContext) {
             let gateway;
-            let newResult = { ...result };
+            let newResult = JSON.parse(JSON.stringify(result));
             let handlers = [];
 
             try {
@@ -142,16 +144,18 @@ function gateways(config = {}) {
                 gateway = "default";
             }
 
-            match(newResult.data, async (data) => {
-                const handler = config.middlewareContext[gateway][data.__typename];
+            if (config.middlewareContext[gateway]) {
+                match(newResult.data, (data) => {
+                    const handler = config.middlewareContext[gateway][data.__typename];
 
-                if (handler)
-                    handlers.push(handler(data));
-            });
+                    if (handler)
+                        handlers.push(handler(data));
+                });
 
-            await Promise.all(handlers);
+                await Promise.all(handlers);
 
-            return newResult;
+                return newResult;
+            }
         }
 
         return result;
