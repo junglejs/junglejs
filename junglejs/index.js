@@ -105,7 +105,7 @@ function match(x, fn) {
     for (let y of x) {
       match(y, fn);
     }
-  } else if (typeof x === "object") {
+  } else if (typeof x === "object" && x !== null) {
     if (x.hasOwnProperty("__typename")) {
       fn(x);
     }
