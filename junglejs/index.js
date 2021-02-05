@@ -147,18 +147,30 @@ function gateways(config = {}) {
                     gateway = "default";
                 }
 
-                if (config.middlewareContext[gateway]) {
-                    match(newResult.data, (data) => {
-                        const handler = config.middlewareContext[gateway][data.__typename];
+                const middleware = async (m) => {
+                    if (Array.isArray(m)) {
+                        for await (let i of m) {
+                            await middleware(i);
+                        }
+                    }
+                    else if (typeof m === 'function') {
+                        await m(newResult.data);
+                    }
+                    else {
+                        match(newResult.data, (data) => {
+                            const handler = m[data.__typename];
 
-                        if (handler)
-                            handlers.push(handler(data));
-                    });
+                            if (handler)
+                                handlers.push(handler(data));
+                        });
 
-                    await Promise.all(handlers);
+                        await Promise.all(handlers);
+                    }
 
                     return newResult;
                 }
+
+               return await middleware(config.middlewareContext[gateway]);
             }
 
             return result;
