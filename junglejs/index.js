@@ -118,6 +118,8 @@ function match(x, fn) {
 
 function gateways(config = {}) {
     const links = new MultiAPILink({
+        wsSuffix: '',
+        httpSuffix: '',
         endpoints: config.gateways || {},
         getContext: config.gatewayContext || function() {},
         createHttpLink: () => createHttpLink({fetch})
@@ -131,34 +133,40 @@ function gateways(config = {}) {
     });
 
     jungleClient = async (options) => {
-        const result = await client.query(options);
+        try {
+            const result = await client.query(options);
 
-    	if (config.middlewareContext) {
-            let gateway;
-            let newResult = JSON.parse(JSON.stringify(result));
-            let handlers = [];
+            if (config.middlewareContext) {
+                let gateway;
+                let newResult = JSON.parse(JSON.stringify(result));
+                let handlers = [];
 
-            try {
-                gateway = options.query.definitions[0].directives[0].arguments[0].value.value;
-            } catch {
-                gateway = "default";
+                try {
+                    gateway = options.query.definitions[0].directives[0].arguments[0].value.value;
+                } catch {
+                    gateway = "default";
+                }
+
+                if (config.middlewareContext[gateway]) {
+                    match(newResult.data, (data) => {
+                        const handler = config.middlewareContext[gateway][data.__typename];
+
+                        if (handler)
+                            handlers.push(handler(data));
+                    });
+
+                    await Promise.all(handlers);
+
+                    return newResult;
+                }
             }
 
-            if (config.middlewareContext[gateway]) {
-                match(newResult.data, (data) => {
-                    const handler = config.middlewareContext[gateway][data.__typename];
-
-                    if (handler)
-                        handlers.push(handler(data));
-                });
-
-                await Promise.all(handlers);
-
-                return newResult;
-            }
+            return result;
         }
-
-        return result;
+        catch(err) {
+            console.log(err);
+            graphqlError(err)
+        }
     };
 
     return jungleClient;
