@@ -2,7 +2,7 @@
     "name": "junglejs",
     "version": "1.1.2",
     "description": "The Jamstack static site framework for Svelte",
-    "main": "index.js",
+    "main": "junglejs/index.js",
     "scripts": {
         "np": "np"
     },
