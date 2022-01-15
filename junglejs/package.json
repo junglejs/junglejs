@@ -42,7 +42,7 @@
         "htmlparser2": "^4.1.0",
         "http": "0.0.1-security",
         "lodash.find": "^4.6.0",
-        "marked": "^1.1.0",
+        "marked": "^4.0.10",
         "morgan": "^1.10.0",
         "node-fetch": "^2.6.0",
         "path": "^0.12.7",
