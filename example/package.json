@@ -14,7 +14,7 @@
     "rollup-plugin-svelte": "^5.0.3",
     "rollup-plugin-svelte-ssr": "^1.0.3",
     "rollup-plugin-terser": "^5.1.2",
-    "svelte": "^3.0.0"
+    "svelte": "^3.49.0"
   },
   "dependencies": {
     "junglejs": "file:../junglejs",
